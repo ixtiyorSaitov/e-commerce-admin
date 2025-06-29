@@ -1,6 +1,6 @@
 import { AuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import Admin from "@/databasa/admin.model";
+import Admin from "@/database/admin.model";
 import { connectToDatabase } from "./mongoose";
 
 export const authOptions: AuthOptions = {
