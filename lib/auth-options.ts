@@ -15,7 +15,7 @@ export const authOptions: AuthOptions = {
     async signIn({ user }) {
       await connectToDatabase();
 
-      const allowedAdminEmail = process.env.ALLOWED_ADMIN_EMAIL;
+      const allowedAdminEmail = process.env.ALLOWED_ADMIN_EMAIL!;
 
       // Faqat shu bitta emailga ruxsat beramiz
       if (user.email !== allowedAdminEmail) {

@@ -30,66 +30,22 @@ import { ProductDialog } from "@/components/product-dialog";
 import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye } from "lucide-react";
 import type { Product } from "@/types";
 import { ICategory } from "@/interfaces/category.interface";
-
-const mockProducts: Product[] = [
-  {
-    id: "1",
-    name: "iPhone 15 Pro",
-    description: "Latest iPhone with advanced features",
-    price: 999,
-    oldPrice: 1099,
-    category: "Electronics",
-    stock: 50,
-    status: "active",
-    image: "/placeholder.svg?height=60&width=60",
-    benefits: [
-      "A17 Pro chip",
-      "Titanium design",
-      "Pro camera system",
-      "Action Button",
-    ],
-  },
-  {
-    id: "2",
-    name: "MacBook Air M3",
-    description: "Powerful laptop for professionals",
-    price: 1299,
-    oldPrice: 1399,
-    category: "Electronics",
-    stock: 25,
-    status: "active",
-    image: "/placeholder.svg?height=60&width=60",
-    benefits: [
-      "M3 chip",
-      "18-hour battery",
-      "Liquid Retina display",
-      "MagSafe charging",
-    ],
-  },
-  {
-    id: "3",
-    name: "Nike Air Max",
-    description: "Comfortable running shoes",
-    price: 129,
-    oldPrice: 159,
-    category: "Fashion",
-    stock: 0,
-    status: "out_of_stock",
-    image: "/placeholder.svg?height=60&width=60",
-    benefits: [
-      "Air Max cushioning",
-      "Breathable mesh",
-      "Durable rubber sole",
-      "Lightweight design",
-    ],
-  },
-];
+import { LoadingSpinner } from "./ui/loading-spinner";
+import { IProduct } from "@/interfaces/product.interface";
+import Image from "next/image";
+import ReactStars from "react-stars";
+import { AlertModal } from "./ui/alert-modal";
+import { deleteImage } from "@/supabase/storage/deleteImage";
 
 export function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>(mockProducts);
+  const [products, setProducts] = useState<IProduct[] | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingProduct, setEditingProduct] = useState<IProduct | null>(null);
+  const [deletingProduct, setDeletingProduct] = useState<IProduct | null>(null);
+  const [deleteProductLoading, setDeleteProductLoading] =
+    useState<boolean>(false);
+  const [deleteAlert, setDeleteAlert] = useState<boolean>(false);
   const [categories, setCategories] = useState<ICategory[] | null>(null);
 
   useEffect(() => {
@@ -104,35 +60,75 @@ export function ProductsPage() {
         console.error("Kategoriyani olishda xatolik");
       }
     };
+    const fetchProducts = async () => {
+      try {
+        const { data: response } = await axios.get("/api/product/get-product");
+        console.log("product", response);
+        if (response.success) {
+          setProducts(response.datas);
+        }
+      } catch (error) {
+        console.error("Kategoriyani olishda xatolik");
+      }
+    };
+    fetchProducts();
     fetchCategory();
   }, []);
 
-  const filteredProducts = products.filter(
-    (product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProducts = products?.filter((product) => {
+    const nameMatch = product.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const categoryMatch = product.categories.some((c) =>
+      c.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    return nameMatch || categoryMatch;
+  });
 
-  const handleAddProduct = (product: Omit<Product, "id">) => {
-    const newProduct: Product = {
-      ...product,
-      id: Date.now().toString(),
-    };
-    setProducts([...products, newProduct]);
+  const handleAddProduct = (product: IProduct) => {
+    if (products !== null) {
+      setProducts([...products, product]);
+    }
     setDialogOpen(false);
   };
 
-  const handleEditProduct = (product: Product) => {
-    setProducts(products.map((p) => (p.id === product.id ? product : p)));
+  const handleEditProduct = (product: IProduct) => {
+    // setProducts(products.map((p) => (p.id === product.id ? product : p)));
     setEditingProduct(null);
     setDialogOpen(false);
   };
 
-  const handleDeleteProduct = (id: string) => {
-    setProducts(products.filter((p) => p.id !== id));
+  const handleDeleteProduct = async () => {
+    if (!deletingProduct) return;
+    setDeleteProductLoading(true);
+
+    try {
+      // Avval rasmlarni o'chiramiz
+      const images = deletingProduct.images;
+      for (const url of images) {
+        await deleteImage({ url, bucket: "dank-pics" });
+      }
+
+      // Keyin productni o'chiramiz
+      const { data: response } = await axios.delete(
+        `/api/product/delete-product/${deletingProduct._id}`
+      );
+
+      if (response.success) {
+        setProducts(
+          products?.filter((p) => p._id !== deletingProduct._id) || null
+        );
+        setDeleteAlert(false);
+        setDeletingProduct(null);
+      }
+    } catch (error) {
+      console.error("Mahsulotni o‘chirishda xatolik:", error);
+    } finally {
+      setDeleteProductLoading(false);
+    }
   };
 
-  const openEditDialog = (product: Product) => {
+  const openEditDialog = (product: IProduct) => {
     setEditingProduct(product);
     setDialogOpen(true);
   };
@@ -141,6 +137,12 @@ export function ProductsPage() {
     setEditingProduct(null);
     setDialogOpen(true);
   };
+
+  useEffect(() => {
+    if (dialogOpen === false) {
+      setEditingProduct(null);
+    }
+  }, [dialogOpen]);
 
   return (
     <div className="space-y-6">
@@ -164,7 +166,7 @@ export function ProductsPage() {
             <div>
               <CardTitle>Product List</CardTitle>
               <CardDescription>
-                {filteredProducts.length} products found
+                {products?.length} products found
               </CardDescription>
             </div>
             <div className="relative w-64">
@@ -185,50 +187,68 @@ export function ProductsPage() {
                 <TableHead>Product</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Price</TableHead>
-                <TableHead>Stock</TableHead>
+                <TableHead>Rating</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredProducts.map((product) => (
-                <TableRow key={product.id}>
+              {/* <LoadingSpinner /> */}
+              {filteredProducts?.map((product) => (
+                <TableRow key={product._id}>
                   <TableCell>
                     <div className="flex items-center space-x-3">
-                      <img
-                        src={product.image || "/placeholder.svg"}
-                        alt={product.name}
-                        className="h-12 w-12 rounded-lg object-cover"
-                      />
+                      <div className="w-12 h-12 relative">
+                        <Image
+                          src={product.images[0]}
+                          alt={product.name}
+                          fill
+                          className="h-12 w-12 rounded-lg object-cover"
+                        />
+                      </div>
                       <div>
                         <div className="font-medium">{product.name}</div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-sm text-muted-foreground max-w-[300px] line-clamp-1">
                           {product.description}
                         </div>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="secondary">{product.category}</Badge>
+                    {/* {product.categories.length>} */}
+                    <div className="flex items-centere justify-center flex-col gap-1">
+                      {product.categories.map((c, i) => {
+                        if (i > 2) {
+                          return;
+                        } else {
+                          const ctg = categories?.find((f) => f.slug === c);
+                          return (
+                            <div key={i} className="w-full">
+                              <Badge variant="secondary">{ctg?.name}</Badge>
+                            </div>
+                          );
+                        }
+                      })}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
-                      <span className="font-medium">${product.price}</span>
+                      <span className="font-medium">
+                        {product.price.toLocaleString("ru-RU")} {"so'm"}
+                      </span>
                       {product.oldPrice && (
                         <span className="text-sm text-muted-foreground line-through">
-                          ${product.oldPrice}
+                          {product.oldPrice.toLocaleString("ru-RU")} {"so'm"}
                         </span>
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>{product.stock}</TableCell>
                   <TableCell>
-                    <Badge
-                      variant={
-                        product.status === "active" ? "default" : "destructive"
-                      }
-                    >
-                      {product.status === "active" ? "Active" : "Out of Stock"}
+                    <ReactStars size={20} edit={false} count={5} value={5} />
+                  </TableCell>
+                  <TableCell>
+                    <Badge className="">
+                      {product.isOriginal ? "Original" : "Copy"}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
@@ -250,7 +270,10 @@ export function ProductsPage() {
                           Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleDeleteProduct(product.id)}
+                          onClick={() => {
+                            setDeleteAlert(true);
+                            setDeletingProduct(product);
+                          }}
                           className="text-destructive"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
@@ -272,6 +295,14 @@ export function ProductsPage() {
         onOpenChange={setDialogOpen}
         product={editingProduct}
         onSave={editingProduct ? handleEditProduct : handleAddProduct}
+      />
+      <AlertModal
+        open={deleteAlert}
+        setOpen={setDeleteAlert}
+        title="Delete product"
+        description={`Do you want delete this product: ${deletingProduct?.name}`}
+        loading={deleteProductLoading}
+        onSubmit={handleDeleteProduct}
       />
     </div>
   );

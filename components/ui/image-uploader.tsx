@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  type ChangeEvent,
-  Dispatch,
-  SetStateAction,
-  useRef,
-  useState,
-  useEffect,
-} from "react";
+import { type ChangeEvent, Dispatch, SetStateAction, useRef } from "react";
 import { Button } from "./button";
 import { Upload, X, Trash2 } from "lucide-react";
 import Image from "next/image";
@@ -15,16 +8,19 @@ import Image from "next/image";
 interface UploadImage {
   error: string | null;
   setImageError: Dispatch<SetStateAction<string | null>>;
-  imageUrls: string[];
-  setImageUrls: Dispatch<SetStateAction<string[]>>;
+  initialImages: string[];
+  setInitialImages: Dispatch<SetStateAction<string[]>>;
+  newImages: string[];
+  setNewImages: Dispatch<SetStateAction<string[]>>;
   loading: boolean;
 }
 
 export default function ImageUploader({
   error,
-  setImageError,
-  imageUrls,
-  setImageUrls,
+  initialImages,
+  setInitialImages,
+  newImages,
+  setNewImages,
   loading,
 }: UploadImage) {
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -32,18 +28,25 @@ export default function ImageUploader({
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const filesArray = Array.from(e.target.files);
-      const newImagesUrls = filesArray.map((file) => URL.createObjectURL(file));
-      setImageUrls([...imageUrls, ...newImagesUrls]);
+      const newUrls = filesArray.map((file) => URL.createObjectURL(file));
+      setNewImages([...newImages, ...newUrls]);
     }
   };
 
-  const removeImage = (indexToRemove: number) => {
-    setImageUrls(imageUrls.filter((_, index) => index !== indexToRemove));
+  const removeImage = (url: string) => {
+    if (initialImages.includes(url)) {
+      setInitialImages(initialImages.filter((img) => img !== url));
+    } else if (newImages.includes(url)) {
+      setNewImages(newImages.filter((img) => img !== url));
+    }
   };
 
   const clearAllImages = () => {
-    setImageUrls([]);
+    setInitialImages([]);
+    setNewImages([]);
   };
+
+  const allImages = [...initialImages, ...newImages];
 
   return (
     <div className="space-y-4">
@@ -68,7 +71,7 @@ export default function ImageUploader({
           Select Images
         </Button>
 
-        {imageUrls.length > 0 && (
+        {allImages.length > 0 && (
           <Button
             type="button"
             variant="outline"
@@ -82,11 +85,11 @@ export default function ImageUploader({
         )}
       </div>
 
-      {imageUrls.length > 0 && (
+      {allImages.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {imageUrls.map((url, index) => (
+          {allImages.map((url, index) => (
             <div key={url} className="relative group">
-              <div className="relative aspect-square rounded-lg overflow-hidden border-2 border-dashed border-gray-300">
+              <div className="relative aspect-square rounded-lg overflow-hidden border">
                 <Image
                   src={url || "/placeholder.svg"}
                   fill
@@ -95,7 +98,7 @@ export default function ImageUploader({
                 />
                 <button
                   type="button"
-                  onClick={() => removeImage(index)}
+                  onClick={() => removeImage(url)}
                   className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                   disabled={loading}
                 >

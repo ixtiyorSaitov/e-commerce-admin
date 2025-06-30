@@ -1,17 +1,10 @@
 "use client";
 
-import type React from "react";
-
-import { useState, useEffect, Dispatch, SetStateAction } from "react";
-
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-
 import { Input } from "@/components/ui/input";
-
 import { Label } from "@/components/ui/label";
-
 import { Textarea } from "@/components/ui/textarea";
-
 import {
   Dialog,
   DialogContent,
@@ -20,17 +13,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
 import { Badge } from "@/components/ui/badge";
-
 import { Switch } from "@/components/ui/switch";
-
 import { X, Plus } from "lucide-react";
-
-import type { Product } from "@/types";
-
+import type { ICategory } from "@/interfaces/category.interface";
+import type { IProduct } from "@/interfaces/product.interface";
 import ImageUploader from "./ui/image-uploader";
-
 import {
   Select,
   SelectContent,
@@ -39,71 +27,85 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { nameValidation } from "@/lib/validation";
-import { uploadImage } from "@/supabase/storage/client";
+import { deleteImage, uploadImage } from "@/supabase/storage/client";
 import { convertBlobUrlToFile } from "@/lib/utils";
 import { LoadingSpinner } from "./ui/loading-spinner";
-import { ICategory } from "@/interfaces/category.interface";
 import axios from "axios";
 
 interface ProductDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  product?: Product | null;
-  onSave: (product: Product | Omit<Product, "id">) => void;
-  categories: ICategory[];
+  onSave: (product: IProduct) => void;
+  categories: ICategory[] | null;
+  product: IProduct | null;
 }
 
 type StrOrNull = string | null;
 
 export function ProductDialog({
   open,
-
   onOpenChange,
-
-  product,
-
   onSave,
   categories,
+  product,
 }: ProductDialogProps) {
-  // const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
   const [imageError, setImageError] = useState<StrOrNull>(null);
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [initialImages, setInitialImages] = useState<string[]>(
+    product?.images || []
+  );
+  const [newImages, setNewImages] = useState<string[]>([]); // blob: rasmlar
+  const [newBenefit, setNewBenefit] = useState("");
+  const imageUrls = [...initialImages, ...newImages];
+
   const [formData, setFormData] = useState({
     name: "",
-
     description: "",
-
-    price: "",
-
-    oldPrice: "",
-
+    price: null as number | null,
+    oldPrice: null as number | null,
     categories: [] as string[],
-
-    image: [],
-
     benefits: [] as string[],
-
-    isOriginal: false,
-  });
-  const [errors, setErrors] = useState<{
-    nameError: StrOrNull;
-    categoryError: StrOrNull;
-    descriptionError: StrOrNull;
-    priceErrors: StrOrNull;
-    imageError: StrOrNull;
-    benefitsError: StrOrNull;
-  }>({
-    nameError: null,
-    categoryError: null,
-    descriptionError: null,
-    priceErrors: null,
-    imageError: imageError,
-    benefitsError: null,
+    isOriginal: true,
   });
 
-  const [newBenefit, setNewBenefit] = useState("");
-  const resetErrors = () => {
+  const [errors, setErrors] = useState({
+    nameError: null as StrOrNull,
+    categoryError: null as StrOrNull,
+    descriptionError: null as StrOrNull,
+    priceErrors: null as StrOrNull,
+    imageError: null as StrOrNull,
+    benefitsError: null as StrOrNull,
+  });
+
+  useEffect(() => {
+    if (product) {
+      setFormData({
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        oldPrice: Number(product.oldPrice),
+        categories: product.categories,
+        benefits: product.benefits,
+        isOriginal: Boolean(product.isOriginal),
+      });
+      setInitialImages(product.images || []);
+      setNewImages([]);
+    } else {
+      setFormData({
+        name: "",
+        description: "",
+        price: null,
+        oldPrice: null,
+        categories: [],
+        benefits: [],
+        isOriginal: true,
+      });
+      setInitialImages([]);
+      setNewImages([]);
+    }
+  }, [product]);
+
+  const resetErrors = () =>
     setErrors({
       nameError: null,
       categoryError: null,
@@ -112,157 +114,137 @@ export function ProductDialog({
       imageError: null,
       benefitsError: null,
     });
-  };
 
-  useEffect(() => {
-    if (product) {
-      setFormData({
-        name: product.name,
-
-        description: product.description,
-
-        price: product.price.toString(),
-
-        oldPrice: product.oldPrice?.toString() || "",
-
-        categories: product.categories || [],
-
-        image: product.image,
-
-        benefits: product.benefits || [],
-
-        isOriginal: product.isOriginal || false,
-      });
-    } else {
-      setFormData({
-        name: "",
-
-        description: "",
-
-        price: "",
-
-        oldPrice: "",
-
-        categories: [],
-
-        image: [],
-
-        benefits: [],
-
-        isOriginal: false,
-      });
-    }
-  }, [product]);
-
-  const handleSubmit = async () => {
+  const validateForm = () => {
     if (!nameValidation(formData.name)) {
-      return setErrors({
-        ...errors,
+      setErrors((prev) => ({
+        ...prev,
         nameError: "Mahsulot nomi kamida 4 ta belgidan iborat bo'lishi kerak",
-      });
-    } else {
-      setErrors({ ...errors, nameError: null });
+      }));
+      return false;
     }
     if (formData.categories.length === 0) {
-      return setErrors({
-        ...errors,
+      setErrors((prev) => ({
+        ...prev,
         categoryError: "Kamida 1 ta kategoriya bo'lishi kerak",
-      });
+      }));
+      return false;
     }
     if (formData.description.length < 10 || formData.description.length > 200) {
-      const len = formData.description.length;
-      return setErrors({
-        ...errors,
+      setErrors((prev) => ({
+        ...prev,
         descriptionError:
-          len < 10
+          formData.description.length < 10
             ? "Description kamida 10 ta harfdan iborat bo'lishi kerak"
             : "Description maksimal 200 ta harfdan iborat bo'lishi kerak",
-      });
+      }));
+      return false;
     }
     if (
       !(formData.price || formData.oldPrice) ||
-      (formData.price || formData.oldPrice) === "0"
+      (formData.price || formData.oldPrice)?.toString() === "0"
     ) {
-      return setErrors({
-        ...errors,
+      setErrors((prev) => ({
+        ...prev,
         priceErrors: "Narxlar bo'lishi shart",
-      });
+      }));
+      return false;
     }
-    if (imageUrls.length === 0) {
-      return setErrors({
-        ...errors,
+    if (initialImages.length + newImages.length === 0) {
+      setErrors((prev) => ({
+        ...prev,
         imageError: "Kamida 1 ta rasm yuklanishi kerak",
-      });
+      }));
+      return false;
     }
     if (formData.benefits.length < 2) {
-      return setErrors({
-        ...errors,
-        benefitsError: "Benefit kamida 2 ta bo'lishi shart!",
-      });
+      setErrors((prev) => ({
+        ...prev,
+        benefitsError: "Benefit kamida 2 ta bo'lishi kerak",
+      }));
+      return false;
     }
-    resetErrors();
-    try {
-      setLoading(true);
-      const uploadedUrls = [];
+    return true;
+  };
 
-      for (const url of imageUrls) {
+  const uploadImages = async (): Promise<string[] | null> => {
+    try {
+      const uploaded: string[] = [];
+
+      for (const url of newImages) {
         const file = await convertBlobUrlToFile(url);
         const { imageUrl, error } = await uploadImage({
           file,
           bucket: "dank-pics",
         });
+        if (error) throw new Error("Upload failed");
+        uploaded.push(imageUrl);
+      }
 
-        if (error) {
-          setImageError("Rasm yuklashda xatolik yuz berdi");
-          return;
-        }
+      return [...initialImages, ...uploaded];
+    } catch {
+      setImageError("Rasm yuklashda xatolik yuz berdi");
+      return null;
+    }
+  };
 
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+    resetErrors();
+    setLoading(true);
+
+    try {
+      const uploadedUrls: string[] = [];
+
+      for (const url of newImages) {
+        const file = await convertBlobUrlToFile(url);
+        const { imageUrl, error } = await uploadImage({
+          file,
+          bucket: "dank-pics",
+        });
+        if (error) throw new Error("Upload failed");
         uploadedUrls.push(imageUrl);
       }
 
-      const productData = {
-        name: formData.name,
-        description: formData.description,
-        price: Number(formData.price),
-        oldPrice: Number(formData.oldPrice),
-        categories: formData.categories,
-        images: uploadedUrls,
-        benefits: formData.benefits,
-        isOriginal: formData.isOriginal,
-      };
-      const { data: response } = await axios.post(
-        "/api/product/create-product",
-        productData
-      );
-      console.log(response);
+      const deleted =
+        product?.images?.filter((oldUrl) => !initialImages.includes(oldUrl)) ||
+        [];
 
-      if (response.success) {
-        console.log("SUCCESS!");
+      for (const url of deleted) {
+        await deleteImage({ url, bucket: "dank-pics" });
       }
 
-      // onSave(productData);
-      // onOpenChange(false);
-      setFormData({
-        name: "",
+      const productData = {
+        ...formData,
+        price: Number(formData.price),
+        oldPrice: Number(formData.oldPrice),
+        images: [...initialImages, ...uploadedUrls],
+      };
+      const isEditing = !!product; // agar mavjud bo‘lsa true
+      const endpoint = isEditing
+        ? `/api/product/edit-product/${product._id}`
+        : "/api/product/create-product";
+      const method = isEditing ? "put" : "post";
+      const { data: response } = await axios[method](endpoint, productData);
 
-        description: "",
-
-        price: "",
-
-        oldPrice: "",
-
-        categories: [],
-
-        image: [],
-
-        benefits: [],
-
-        isOriginal: false,
-      });
-
-      setImageUrls([]);
+      if (response.success) {
+        onSave(response.data);
+        onOpenChange(false);
+        setFormData({
+          name: "",
+          description: "",
+          price: null,
+          oldPrice: null,
+          categories: [],
+          benefits: [],
+          isOriginal: true,
+        });
+        setInitialImages([]);
+        setNewImages([]);
+      }
     } catch (err) {
-      setImageError("Noma'lum xatolik yuz berdi");
+      console.error(err);
+      setImageError("Rasm yuklashda yoki o‘chirishda xatolik yuz berdi");
     } finally {
       setLoading(false);
     }
@@ -270,30 +252,26 @@ export function ProductDialog({
 
   const addBenefit = () => {
     if (newBenefit.trim()) {
-      setFormData({
-        ...formData,
-
-        benefits: [...formData.benefits, newBenefit.trim()],
-      });
-
+      setFormData((prev) => ({
+        ...prev,
+        benefits: [...prev.benefits, newBenefit.trim()],
+      }));
       setNewBenefit("");
     }
   };
 
-  const removeBenefit = (index: number) => {
-    setFormData({
-      ...formData,
-
-      benefits: formData.benefits.filter((_, i) => i !== index),
-    });
-  };
-
-  const removeCategory = (category: string) => {
-    setFormData({
-      ...formData,
-
-      categories: formData.categories.filter((c) => c !== category),
-    });
+  const removeItem = (
+    key: "benefits" | "categories",
+    indexOrValue: number | string
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [key]: Array.isArray(prev[key])
+        ? typeof indexOrValue === "number"
+          ? prev[key].filter((_, i) => i !== indexOrValue)
+          : prev[key].filter((val) => val !== indexOrValue)
+        : prev[key],
+    }));
   };
 
   return (
@@ -303,10 +281,9 @@ export function ProductDialog({
           <DialogTitle>
             {product ? "Edit Product" : "Add New Product"}
           </DialogTitle>
-
           <DialogDescription>
             {product
-              ? "Update product information"
+              ? "Update your product information"
               : "Create a new product listing"}
           </DialogDescription>
         </DialogHeader>
@@ -314,7 +291,6 @@ export function ProductDialog({
         <div className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="name">Product Name</Label>
-
             <Input
               disabled={loading}
               id="name"
@@ -354,28 +330,25 @@ export function ProductDialog({
                 ))}
               </SelectContent>
             </Select>
-
-            {formData.categories.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {formData.categories.map((category) => (
-                  <Badge
-                    key={category}
-                    variant="secondary"
-                    className="flex items-center gap-1"
+            <div className="flex flex-wrap gap-2 mt-2">
+              {formData.categories.map((category) => (
+                <Badge
+                  key={category}
+                  variant="secondary"
+                  className="flex items-center gap-1"
+                >
+                  {category}
+                  <button
+                    disabled={loading}
+                    type="button"
+                    onClick={() => removeItem("categories", category)}
+                    className="ml-1 hover:text-destructive"
                   >
-                    {category}
-                    <button
-                      disabled={loading}
-                      type="button"
-                      onClick={() => removeCategory(category)}
-                      className="ml-1 hover:text-destructive"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-            )}
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
             {errors.categoryError && (
               <p className="text-[13px] text-destructive">
                 {errors.categoryError}
@@ -385,7 +358,6 @@ export function ProductDialog({
 
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
-
             <Textarea
               id="description"
               value={formData.description}
@@ -405,31 +377,33 @@ export function ProductDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="price">Price ($)</Label>
-
               <Input
                 id="price"
                 type="number"
                 step="0.01"
-                value={formData.price}
+                value={formData.price || ""}
                 disabled={loading}
                 onChange={(e) =>
-                  setFormData({ ...formData, price: e.target.value })
+                  setFormData({
+                    ...formData,
+                    price: Number(e.target.value),
+                  })
                 }
-                required
               />
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="oldPrice">Old Price ($)</Label>
-
               <Input
                 id="oldPrice"
                 type="number"
                 step="0.01"
-                value={formData.oldPrice}
+                value={formData.oldPrice || ""}
                 disabled={loading}
                 onChange={(e) =>
-                  setFormData({ ...formData, oldPrice: e.target.value })
+                  setFormData({
+                    ...formData,
+                    oldPrice: Number(e.target.value),
+                  })
                 }
               />
             </div>
@@ -444,10 +418,11 @@ export function ProductDialog({
               loading={loading}
               error={imageError}
               setImageError={setImageError}
-              imageUrls={imageUrls}
-              setImageUrls={setImageUrls}
+              initialImages={initialImages}
+              setInitialImages={setInitialImages}
+              newImages={newImages}
+              setNewImages={setNewImages}
             />
-
             {errors.imageError && (
               <p className="text-[13px] text-destructive">
                 {errors.imageError}
@@ -457,18 +432,16 @@ export function ProductDialog({
 
           <div className="space-y-2">
             <Label>Product Benefits (Min 2)</Label>
-
             <div className="flex space-x-2">
               <Input
                 value={newBenefit}
                 onChange={(e) => setNewBenefit(e.target.value)}
                 placeholder="Add a product benefit"
-                onKeyPress={(e) =>
+                onKeyDown={(e) =>
                   e.key === "Enter" && (e.preventDefault(), addBenefit())
                 }
                 disabled={loading}
               />
-
               <Button
                 type="button"
                 onClick={addBenefit}
@@ -478,7 +451,6 @@ export function ProductDialog({
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-
             <div className="flex flex-wrap gap-2 mt-2">
               {formData.benefits.map((benefit, index) => (
                 <Badge
@@ -487,11 +459,10 @@ export function ProductDialog({
                   className="flex items-center gap-1"
                 >
                   <p className="max-w-[200px] line-clamp-1">{benefit}</p>
-
                   <button
                     disabled={loading}
                     type="button"
-                    onClick={() => removeBenefit(index)}
+                    onClick={() => removeItem("benefits", index)}
                     className="ml-1 hover:text-destructive"
                   >
                     <X className="h-3 w-3" />
@@ -515,7 +486,6 @@ export function ProductDialog({
                 setFormData({ ...formData, isOriginal: checked })
               }
             />
-
             <Label htmlFor="isOriginal">Original Product</Label>
           </div>
 
@@ -528,7 +498,6 @@ export function ProductDialog({
             >
               Cancel
             </Button>
-
             <Button
               type="submit"
               className="bg-gradient-to-r from-primary to-primary/90"

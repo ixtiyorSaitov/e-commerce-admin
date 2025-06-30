@@ -39,3 +39,24 @@ export async function uploadImage({ file, bucket, folder }: UploadProps) {
 
   return { imageUrl, error: "" };
 }
+
+type DeleteProps = {
+  url: string;
+  bucket: string;
+};
+
+export async function deleteImage({ url, bucket }: DeleteProps) {
+  try {
+    const path = url.split(`${bucket}/`)[1]; // masalan: products/123.jpg
+    if (!path) throw new Error("URLdan path ajratib bo‘lmadi");
+
+    const supabase = createSupabaseClient();
+    const { error } = await supabase.storage.from(bucket).remove([path]);
+
+    if (error) throw new Error(error.message);
+    return { success: true };
+  } catch (error) {
+    console.error("Supabase image delete error:", error);
+    return { success: false, error };
+  }
+}
