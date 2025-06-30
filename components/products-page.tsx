@@ -1,15 +1,35 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { ProductDialog } from "@/components/product-dialog"
-import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye } from "lucide-react"
-import type { Product } from "@/types"
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import axios from "axios";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ProductDialog } from "@/components/product-dialog";
+import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye } from "lucide-react";
+import type { Product } from "@/types";
+import { ICategory } from "@/interfaces/category.interface";
 
 const mockProducts: Product[] = [
   {
@@ -22,7 +42,12 @@ const mockProducts: Product[] = [
     stock: 50,
     status: "active",
     image: "/placeholder.svg?height=60&width=60",
-    benefits: ["A17 Pro chip", "Titanium design", "Pro camera system", "Action Button"],
+    benefits: [
+      "A17 Pro chip",
+      "Titanium design",
+      "Pro camera system",
+      "Action Button",
+    ],
   },
   {
     id: "2",
@@ -34,7 +59,12 @@ const mockProducts: Product[] = [
     stock: 25,
     status: "active",
     image: "/placeholder.svg?height=60&width=60",
-    benefits: ["M3 chip", "18-hour battery", "Liquid Retina display", "MagSafe charging"],
+    benefits: [
+      "M3 chip",
+      "18-hour battery",
+      "Liquid Retina display",
+      "MagSafe charging",
+    ],
   },
   {
     id: "3",
@@ -46,50 +76,71 @@ const mockProducts: Product[] = [
     stock: 0,
     status: "out_of_stock",
     image: "/placeholder.svg?height=60&width=60",
-    benefits: ["Air Max cushioning", "Breathable mesh", "Durable rubber sole", "Lightweight design"],
+    benefits: [
+      "Air Max cushioning",
+      "Breathable mesh",
+      "Durable rubber sole",
+      "Lightweight design",
+    ],
   },
-]
+];
 
 export function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>(mockProducts)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+  const [products, setProducts] = useState<Product[]>(mockProducts);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [categories, setCategories] = useState<ICategory[] | null>(null);
+
+  useEffect(() => {
+    const fetchCategory = async () => {
+      try {
+        const { data: response } = await axios.get("/api/category/get-all");
+        console.log("category", response);
+        if (response.success) {
+          setCategories(response.datas);
+        }
+      } catch (error) {
+        console.error("Kategoriyani olishda xatolik");
+      }
+    };
+    fetchCategory();
+  }, []);
 
   const filteredProducts = products.filter(
     (product) =>
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+      product.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleAddProduct = (product: Omit<Product, "id">) => {
     const newProduct: Product = {
       ...product,
       id: Date.now().toString(),
-    }
-    setProducts([...products, newProduct])
-    setDialogOpen(false)
-  }
+    };
+    setProducts([...products, newProduct]);
+    setDialogOpen(false);
+  };
 
   const handleEditProduct = (product: Product) => {
-    setProducts(products.map((p) => (p.id === product.id ? product : p)))
-    setEditingProduct(null)
-    setDialogOpen(false)
-  }
+    setProducts(products.map((p) => (p.id === product.id ? product : p)));
+    setEditingProduct(null);
+    setDialogOpen(false);
+  };
 
   const handleDeleteProduct = (id: string) => {
-    setProducts(products.filter((p) => p.id !== id))
-  }
+    setProducts(products.filter((p) => p.id !== id));
+  };
 
   const openEditDialog = (product: Product) => {
-    setEditingProduct(product)
-    setDialogOpen(true)
-  }
+    setEditingProduct(product);
+    setDialogOpen(true);
+  };
 
   const openAddDialog = () => {
-    setEditingProduct(null)
-    setDialogOpen(true)
-  }
+    setEditingProduct(null);
+    setDialogOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -98,7 +149,10 @@ export function ProductsPage() {
           <h1 className="text-3xl font-bold tracking-tight">Products</h1>
           <p className="text-muted-foreground">Manage your product catalog</p>
         </div>
-        <Button onClick={openAddDialog} className="bg-gradient-to-r from-primary to-primary/90">
+        <Button
+          onClick={openAddDialog}
+          className="bg-gradient-to-r from-primary to-primary/90"
+        >
           <Plus className="mr-2 h-4 w-4" />
           Add Product
         </Button>
@@ -109,7 +163,9 @@ export function ProductsPage() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Product List</CardTitle>
-              <CardDescription>{filteredProducts.length} products found</CardDescription>
+              <CardDescription>
+                {filteredProducts.length} products found
+              </CardDescription>
             </div>
             <div className="relative w-64">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -146,7 +202,9 @@ export function ProductsPage() {
                       />
                       <div>
                         <div className="font-medium">{product.name}</div>
-                        <div className="text-sm text-muted-foreground">{product.description}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {product.description}
+                        </div>
                       </div>
                     </div>
                   </TableCell>
@@ -157,13 +215,19 @@ export function ProductsPage() {
                     <div className="flex items-center space-x-2">
                       <span className="font-medium">${product.price}</span>
                       {product.oldPrice && (
-                        <span className="text-sm text-muted-foreground line-through">${product.oldPrice}</span>
+                        <span className="text-sm text-muted-foreground line-through">
+                          ${product.oldPrice}
+                        </span>
                       )}
                     </div>
                   </TableCell>
                   <TableCell>{product.stock}</TableCell>
                   <TableCell>
-                    <Badge variant={product.status === "active" ? "default" : "destructive"}>
+                    <Badge
+                      variant={
+                        product.status === "active" ? "default" : "destructive"
+                      }
+                    >
                       {product.status === "active" ? "Active" : "Out of Stock"}
                     </Badge>
                   </TableCell>
@@ -179,11 +243,16 @@ export function ProductsPage() {
                           <Eye className="mr-2 h-4 w-4" />
                           View
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => openEditDialog(product)}>
+                        <DropdownMenuItem
+                          onClick={() => openEditDialog(product)}
+                        >
                           <Edit className="mr-2 h-4 w-4" />
                           Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDeleteProduct(product.id)} className="text-destructive">
+                        <DropdownMenuItem
+                          onClick={() => handleDeleteProduct(product.id)}
+                          className="text-destructive"
+                        >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete
                         </DropdownMenuItem>
@@ -198,11 +267,12 @@ export function ProductsPage() {
       </Card>
 
       <ProductDialog
+        categories={categories}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         product={editingProduct}
         onSave={editingProduct ? handleEditProduct : handleAddProduct}
       />
     </div>
-  )
+  );
 }

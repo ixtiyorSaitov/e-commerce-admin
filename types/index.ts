@@ -20,7 +20,7 @@ export interface Product {
   category: string
   stock: number
   status: "active" | "out_of_stock"
-  image: string
+  image: string[]
   benefits?: string[]
 }
 

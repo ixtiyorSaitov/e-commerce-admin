@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Dispatch, SetStateAction } from "react";
 
 import { Button } from "@/components/ui/button";
 
@@ -39,30 +39,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { nameValidation } from "@/lib/validation";
+import { uploadImage } from "@/supabase/storage/client";
+import { convertBlobUrlToFile } from "@/lib/utils";
+import { LoadingSpinner } from "./ui/loading-spinner";
+import { ICategory } from "@/interfaces/category.interface";
+import axios from "axios";
 
 interface ProductDialogProps {
   open: boolean;
-
   onOpenChange: (open: boolean) => void;
-
   product?: Product | null;
-
   onSave: (product: Product | Omit<Product, "id">) => void;
+  categories: ICategory[];
 }
 
-const categories = [
-  "Electronics",
-
-  "Fashion",
-
-  "Home & Garden",
-
-  "Sports",
-
-  "Books",
-
-  "Toys",
-];
 type StrOrNull = string | null;
 
 export function ProductDialog({
@@ -73,7 +63,12 @@ export function ProductDialog({
   product,
 
   onSave,
+  categories,
 }: ProductDialogProps) {
+  // const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [imageError, setImageError] = useState<StrOrNull>(null);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     name: "",
 
@@ -85,7 +80,7 @@ export function ProductDialog({
 
     categories: [] as string[],
 
-    image: "",
+    image: [],
 
     benefits: [] as string[],
 
@@ -103,11 +98,21 @@ export function ProductDialog({
     categoryError: null,
     descriptionError: null,
     priceErrors: null,
-    imageError: null,
+    imageError: imageError,
     benefitsError: null,
   });
 
   const [newBenefit, setNewBenefit] = useState("");
+  const resetErrors = () => {
+    setErrors({
+      nameError: null,
+      categoryError: null,
+      descriptionError: null,
+      priceErrors: null,
+      imageError: null,
+      benefitsError: null,
+    });
+  };
 
   useEffect(() => {
     if (product) {
@@ -140,7 +145,7 @@ export function ProductDialog({
 
         categories: [],
 
-        image: "",
+        image: [],
 
         benefits: [],
 
@@ -149,14 +154,16 @@ export function ProductDialog({
     }
   }, [product]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!nameValidation(formData.name)) {
       return setErrors({
         ...errors,
         nameError: "Mahsulot nomi kamida 4 ta belgidan iborat bo'lishi kerak",
       });
+    } else {
+      setErrors({ ...errors, nameError: null });
     }
-    if (categories.length === 0) {
+    if (formData.categories.length === 0) {
       return setErrors({
         ...errors,
         categoryError: "Kamida 1 ta kategoriya bo'lishi kerak",
@@ -176,38 +183,93 @@ export function ProductDialog({
       !(formData.price || formData.oldPrice) ||
       (formData.price || formData.oldPrice) === "0"
     ) {
-      setErrors({
+      return setErrors({
         ...errors,
         priceErrors: "Narxlar bo'lishi shart",
       });
-    } 
-    if(formData.benefits.length < 2) {
-      setErrors({...errors, benefitsError: "Benefit kamida 2 ta bo'lishi shart!"})
     }
-    const productData = {
-      name: formData.name,
+    if (imageUrls.length === 0) {
+      return setErrors({
+        ...errors,
+        imageError: "Kamida 1 ta rasm yuklanishi kerak",
+      });
+    }
+    if (formData.benefits.length < 2) {
+      return setErrors({
+        ...errors,
+        benefitsError: "Benefit kamida 2 ta bo'lishi shart!",
+      });
+    }
+    resetErrors();
+    try {
+      setLoading(true);
+      const uploadedUrls = [];
 
-      description: formData.description,
+      for (const url of imageUrls) {
+        const file = await convertBlobUrlToFile(url);
+        const { imageUrl, error } = await uploadImage({
+          file,
+          bucket: "dank-pics",
+        });
 
-      price: Number.parseFloat(formData.price),
+        if (error) {
+          setImageError("Rasm yuklashda xatolik yuz berdi");
+          return;
+        }
 
-      oldPrice: formData.oldPrice
-        ? Number.parseFloat(formData.oldPrice)
-        : undefined,
+        uploadedUrls.push(imageUrl);
+      }
 
-      categories: formData.categories,
+      const productData = {
+        name: formData.name,
+        description: formData.description,
+        price: Number(formData.price),
+        oldPrice: Number(formData.oldPrice),
+        categories: formData.categories,
+        images: uploadedUrls,
+        benefits: formData.benefits,
+        isOriginal: formData.isOriginal,
+      };
+      const { data: response } = await axios.post(
+        "/api/product/create-product",
+        productData
+      );
+      console.log(response);
 
-      image: formData.image || "/placeholder.svg?height=60&width=60",
+      if (response.success) {
+        console.log("SUCCESS!");
+      }
 
-      benefits: formData.benefits,
+      // onSave(productData);
+      // onOpenChange(false);
+      setFormData({
+        name: "",
 
-      isOriginal: formData.isOriginal,
-    };
-    console.log(productData);
+        description: "",
+
+        price: "",
+
+        oldPrice: "",
+
+        categories: [],
+
+        image: [],
+
+        benefits: [],
+
+        isOriginal: false,
+      });
+
+      setImageUrls([]);
+    } catch (err) {
+      setImageError("Noma'lum xatolik yuz berdi");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const addBenefit = () => {
-    if (newBenefit.trim() && formData.benefits.length < 4) {
+    if (newBenefit.trim()) {
       setFormData({
         ...formData,
 
@@ -254,6 +316,7 @@ export function ProductDialog({
             <Label htmlFor="name">Product Name</Label>
 
             <Input
+              disabled={loading}
               id="name"
               value={formData.name}
               onChange={(e) =>
@@ -261,11 +324,15 @@ export function ProductDialog({
               }
               required
             />
+            {errors.nameError && (
+              <p className="text-[13px] text-destructive">{errors.nameError}</p>
+            )}
           </div>
 
           <div className="space-y-2">
             <Label>Categories</Label>
             <Select
+              disabled={loading}
               value=""
               onValueChange={(value) => {
                 if (value && !formData.categories.includes(value)) {
@@ -280,13 +347,11 @@ export function ProductDialog({
                 <SelectValue placeholder="Select categories" />
               </SelectTrigger>
               <SelectContent>
-                {categories
-                  .filter((category) => !formData.categories.includes(category))
-                  .map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
+                {categories?.map((category) => (
+                  <SelectItem key={category._id} value={category.slug}>
+                    {category.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
@@ -300,6 +365,7 @@ export function ProductDialog({
                   >
                     {category}
                     <button
+                      disabled={loading}
                       type="button"
                       onClick={() => removeCategory(category)}
                       className="ml-1 hover:text-destructive"
@@ -309,6 +375,11 @@ export function ProductDialog({
                   </Badge>
                 ))}
               </div>
+            )}
+            {errors.categoryError && (
+              <p className="text-[13px] text-destructive">
+                {errors.categoryError}
+              </p>
             )}
           </div>
 
@@ -321,8 +392,14 @@ export function ProductDialog({
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
+              disabled={loading}
               rows={3}
             />
+            {errors.descriptionError && (
+              <p className="text-[13px] text-destructive">
+                {errors.descriptionError}
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -334,6 +411,7 @@ export function ProductDialog({
                 type="number"
                 step="0.01"
                 value={formData.price}
+                disabled={loading}
                 onChange={(e) =>
                   setFormData({ ...formData, price: e.target.value })
                 }
@@ -349,21 +427,36 @@ export function ProductDialog({
                 type="number"
                 step="0.01"
                 value={formData.oldPrice}
+                disabled={loading}
                 onChange={(e) =>
                   setFormData({ ...formData, oldPrice: e.target.value })
                 }
               />
             </div>
           </div>
+          {errors.priceErrors && (
+            <p className="text-[13px] text-destructive">{errors.priceErrors}</p>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="image">Upload Image</Label>
+            <ImageUploader
+              loading={loading}
+              error={imageError}
+              setImageError={setImageError}
+              imageUrls={imageUrls}
+              setImageUrls={setImageUrls}
+            />
 
-            <ImageUploader />
+            {errors.imageError && (
+              <p className="text-[13px] text-destructive">
+                {errors.imageError}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
-            <Label>Product Benefits (Max 4)</Label>
+            <Label>Product Benefits (Min 2)</Label>
 
             <div className="flex space-x-2">
               <Input
@@ -373,12 +466,13 @@ export function ProductDialog({
                 onKeyPress={(e) =>
                   e.key === "Enter" && (e.preventDefault(), addBenefit())
                 }
+                disabled={loading}
               />
 
               <Button
                 type="button"
                 onClick={addBenefit}
-                disabled={formData.benefits.length >= 4 || !newBenefit.trim()}
+                disabled={!newBenefit.trim() || loading}
                 size="icon"
               >
                 <Plus className="h-4 w-4" />
@@ -392,9 +486,10 @@ export function ProductDialog({
                   variant="secondary"
                   className="flex items-center gap-1"
                 >
-                  {benefit}
+                  <p className="max-w-[200px] line-clamp-1">{benefit}</p>
 
                   <button
+                    disabled={loading}
                     type="button"
                     onClick={() => removeBenefit(index)}
                     className="ml-1 hover:text-destructive"
@@ -404,12 +499,18 @@ export function ProductDialog({
                 </Badge>
               ))}
             </div>
+            {errors.benefitsError && (
+              <p className="text-[13px] text-destructive">
+                {errors.benefitsError}
+              </p>
+            )}
           </div>
 
           <div className="flex items-center space-x-2">
             <Switch
               id="isOriginal"
               checked={formData.isOriginal}
+              disabled={loading}
               onCheckedChange={(checked) =>
                 setFormData({ ...formData, isOriginal: checked })
               }
@@ -423,6 +524,7 @@ export function ProductDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
+              disabled={loading}
             >
               Cancel
             </Button>
@@ -431,8 +533,10 @@ export function ProductDialog({
               type="submit"
               className="bg-gradient-to-r from-primary to-primary/90"
               onClick={handleSubmit}
+              disabled={loading}
             >
               {product ? "Update Product" : "Create Product"}
+              {loading && <LoadingSpinner size="sm" />}
             </Button>
           </DialogFooter>
         </div>

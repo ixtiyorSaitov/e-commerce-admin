@@ -1,60 +1,40 @@
 "use client";
 
-import { type ChangeEvent, useRef, useState, useTransition } from "react";
-
+import {
+  type ChangeEvent,
+  Dispatch,
+  SetStateAction,
+  useRef,
+  useState,
+  useEffect,
+} from "react";
 import { Button } from "./button";
-
-import { CloudUpload, Upload, X, Trash2 } from "lucide-react";
-
+import { Upload, X, Trash2 } from "lucide-react";
 import Image from "next/image";
 
-import { convertBlobUrlToFile } from "@/lib/utils";
+interface UploadImage {
+  error: string | null;
+  setImageError: Dispatch<SetStateAction<string | null>>;
+  imageUrls: string[];
+  setImageUrls: Dispatch<SetStateAction<string[]>>;
+  loading: boolean;
+}
 
-import { uploadImage } from "@/supabase/storage/client";
-
-export default function ImageUploader() {
+export default function ImageUploader({
+  error,
+  setImageError,
+  imageUrls,
+  setImageUrls,
+  loading,
+}: UploadImage) {
   const imageInputRef = useRef<HTMLInputElement>(null);
-
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const filesArray = Array.from(e.target.files);
-
       const newImagesUrls = filesArray.map((file) => URL.createObjectURL(file));
-
       setImageUrls([...imageUrls, ...newImagesUrls]);
     }
-  };
-
-  const [isPending, startTransition] = useTransition();
-
-  const handleClickUploadImagesButton = () => {
-    startTransition(async () => {
-      const urls = [];
-
-      for (const url of imageUrls) {
-        const imageFile = await convertBlobUrlToFile(url);
-
-        const { imageUrl, error } = await uploadImage({
-          file: imageFile,
-
-          bucket: "dank-pics",
-        });
-
-        if (error) {
-          console.error(error);
-
-          return;
-        }
-
-        urls.push(imageUrl);
-      }
-
-      console.log(urls);
-
-      setImageUrls([]);
-    });
   };
 
   const removeImage = (indexToRemove: number) => {
@@ -72,17 +52,17 @@ export default function ImageUploader() {
         hidden
         multiple
         accept="image/*"
+        disabled={loading}
         ref={imageInputRef}
-        onChange={(e) => handleImageChange(e)}
-        disabled={isPending}
+        onChange={handleImageChange}
       />
 
       <div className="flex gap-2">
         <Button
           type="button"
           variant="outline"
-          disabled={isPending}
           onClick={() => imageInputRef.current?.click()}
+          disabled={loading}
         >
           <Upload className="w-4 h-4 mr-2" />
           Select Images
@@ -94,7 +74,7 @@ export default function ImageUploader() {
             variant="outline"
             size="sm"
             onClick={clearAllImages}
-            disabled={isPending}
+            disabled={loading}
           >
             <Trash2 className="w-4 h-4 mr-2" />
             Clear All
@@ -116,8 +96,8 @@ export default function ImageUploader() {
                 <button
                   type="button"
                   onClick={() => removeImage(index)}
-                  disabled={isPending}
                   className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                  disabled={loading}
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -127,26 +107,7 @@ export default function ImageUploader() {
         </div>
       )}
 
-      {imageUrls.length > 0 && (
-        <Button
-          type="button"
-          disabled={isPending}
-          onClick={handleClickUploadImagesButton}
-          className="w-full"
-        >
-          {isPending ? (
-            <>
-              <CloudUpload className="w-4 h-4 mr-2 animate-spin" />
-              Uploading...
-            </>
-          ) : (
-            <>
-              <CloudUpload className="w-4 h-4 mr-2" />
-              Upload Images
-            </>
-          )}
-        </Button>
-      )}
+      {error && <p className="text-[13px] text-destructive">{error}</p>}
     </div>
   );
 }

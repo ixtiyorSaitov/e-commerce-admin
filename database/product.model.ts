@@ -3,23 +3,17 @@ import mongoose from "mongoose";
 const ProductSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
+    description: String,
     price: { type: Number, required: true },
     oldPrice: Number,
     isOriginal: Boolean,
     slug: { type: String, required: true, unique: true },
     images: [String],
-    categories: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
+    categories: [String],
     benefits: [String],
     favourites: Number,
   },
   { timestamps: true }
-);
-ProductSchema.index(
-  { "categories.name": 1 },
-  {
-    unique: true,
-    partialFilterExpression: { "categories.name": { $exists: true } },
-  }
 );
 
 const Product =
