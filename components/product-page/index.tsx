@@ -238,7 +238,10 @@ const ProductPageComponent = ({ product }: { product: IProduct }) => {
                     Kategoriya:
                   </span>
                   <span className="text-gray-900 dark:text-white font-medium">
-                    Bluetooth, Laptops
+                    {product.categories.map(
+                      (c, i) =>
+                        `${c}${i + 1 !== product.categories.length ? ", " : ""}`
+                    )}
                   </span>
                 </div>
                 <Separator className="bg-gray-200 dark:bg-slate-700" />

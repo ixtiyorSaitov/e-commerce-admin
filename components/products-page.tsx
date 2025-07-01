@@ -37,6 +37,7 @@ import ReactStars from "react-stars";
 import { AlertModal } from "./ui/alert-modal";
 import { deleteImage } from "@/supabase/storage/deleteImage";
 import ProductTableRowSkeleton from "./products-page/table-skeleton";
+import { useRouter } from "next/navigation";
 
 export function ProductsPage() {
   const [products, setProducts] = useState<IProduct[] | null>(null);
@@ -49,6 +50,7 @@ export function ProductsPage() {
   const [deleteAlert, setDeleteAlert] = useState<boolean>(false);
   const [categories, setCategories] = useState<ICategory[] | null>(null);
   const [productsLoading, setProductsLoading] = useState<boolean>(true);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchCategory = async () => {
@@ -270,7 +272,11 @@ export function ProductsPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              router.push(`/products/${product.slug}`)
+                            }
+                          >
                             <Eye className="mr-2 h-4 w-4" />
                             View
                           </DropdownMenuItem>
