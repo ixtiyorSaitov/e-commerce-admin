@@ -36,6 +36,7 @@ import Image from "next/image";
 import ReactStars from "react-stars";
 import { AlertModal } from "./ui/alert-modal";
 import { deleteImage } from "@/supabase/storage/deleteImage";
+import ProductTableRowSkeleton from "./products-page/table-skeleton";
 
 export function ProductsPage() {
   const [products, setProducts] = useState<IProduct[] | null>(null);
@@ -47,6 +48,7 @@ export function ProductsPage() {
     useState<boolean>(false);
   const [deleteAlert, setDeleteAlert] = useState<boolean>(false);
   const [categories, setCategories] = useState<ICategory[] | null>(null);
+  const [productsLoading, setProductsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchCategory = async () => {
@@ -69,6 +71,8 @@ export function ProductsPage() {
         }
       } catch (error) {
         console.error("Kategoriyani olishda xatolik");
+      } finally {
+        setProductsLoading(false);
       }
     };
     fetchProducts();
@@ -193,97 +197,105 @@ export function ProductsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {/* <LoadingSpinner /> */}
-              {filteredProducts?.map((product) => (
-                <TableRow key={product._id}>
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 relative">
-                        <Image
-                          src={product.images[0]}
-                          alt={product.name}
-                          fill
-                          className="h-12 w-12 rounded-lg object-cover"
-                        />
-                      </div>
-                      <div>
-                        <div className="font-medium">{product.name}</div>
-                        <div className="text-sm text-muted-foreground max-w-[300px] line-clamp-1">
-                          {product.description}
+              {productsLoading ? (
+                <>
+                  <ProductTableRowSkeleton />
+                  <ProductTableRowSkeleton />
+                  <ProductTableRowSkeleton />
+                  <ProductTableRowSkeleton />
+                </>
+              ) : (
+                filteredProducts?.map((product) => (
+                  <TableRow key={product._id}>
+                    <TableCell>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 relative">
+                          <Image
+                            src={product.images[0]}
+                            alt={product.name}
+                            fill
+                            className="h-12 w-12 rounded-lg object-cover"
+                          />
+                        </div>
+                        <div>
+                          <div className="font-medium">{product.name}</div>
+                          <div className="text-sm text-muted-foreground max-w-[300px] line-clamp-1">
+                            {product.description}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {/* {product.categories.length>} */}
-                    <div className="flex items-centere justify-center flex-col gap-1">
-                      {product.categories.map((c, i) => {
-                        if (i > 2) {
-                          return;
-                        } else {
-                          const ctg = categories?.find((f) => f.slug === c);
-                          return (
-                            <div key={i} className="w-full">
-                              <Badge variant="secondary">{ctg?.name}</Badge>
-                            </div>
-                          );
-                        }
-                      })}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <span className="font-medium">
-                        {product.price.toLocaleString("ru-RU")} {"so'm"}
-                      </span>
-                      {product.oldPrice && (
-                        <span className="text-sm text-muted-foreground line-through">
-                          {product.oldPrice.toLocaleString("ru-RU")} {"so'm"}
+                    </TableCell>
+                    <TableCell>
+                      {/* {product.categories.length>} */}
+                      <div className="flex items-centere justify-center flex-col gap-1">
+                        {product.categories.map((c, i) => {
+                          if (i > 2) {
+                            return;
+                          } else {
+                            const ctg = categories?.find((f) => f.slug === c);
+                            return (
+                              <div key={i} className="w-full">
+                                <Badge variant="secondary">{ctg?.name}</Badge>
+                              </div>
+                            );
+                          }
+                        })}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <span className="font-medium">
+                          {product.price.toLocaleString("ru-RU")} {"so'm"}
                         </span>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <ReactStars size={20} edit={false} count={5} value={5} />
-                  </TableCell>
-                  <TableCell>
-                    <Badge className="">
-                      {product.isOriginal ? "Original" : "Copy"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <Eye className="mr-2 h-4 w-4" />
-                          View
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => openEditDialog(product)}
-                        >
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setDeleteAlert(true);
-                            setDeletingProduct(product);
-                          }}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+                        {product.oldPrice && (
+                          <span className="text-sm text-muted-foreground line-through">
+                            {product.oldPrice.toLocaleString("ru-RU")} {"so'm"}
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <ReactStars size={20} edit={false} count={5} value={5} />
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={product.isOriginal ? "success" : "info"}>
+                        {product.isOriginal ? "Original" : "Copy"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>
+                            <Eye className="mr-2 h-4 w-4" />
+                            View
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => openEditDialog(product)}
+                          >
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setDeleteAlert(true);
+                              setDeletingProduct(product);
+                            }}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
