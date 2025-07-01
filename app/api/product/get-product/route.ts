@@ -35,7 +35,7 @@ export async function GET(req: Request) {
       if (!product) {
         return NextResponse.json(
           { error: "Product not found" },
-          { status: 404 }
+          // { status: 200 }
         );
       }
       return NextResponse.json(

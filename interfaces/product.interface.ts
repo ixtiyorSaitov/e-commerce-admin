@@ -9,4 +9,6 @@ export interface IProduct {
   images: string[];
   categories: string[];
   benefits: string[];
+  createdAt: Date;
+  updatedAt: Date;
 }

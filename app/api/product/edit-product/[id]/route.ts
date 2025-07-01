@@ -53,8 +53,8 @@ export async function PUT(
     }
 
     // Update fields
-    product.name = name;
-    product.description = description;
+    product.name = name.trim();
+    product.description = description.trim();
     product.price = price;
     product.oldPrice = oldPrice;
     product.categories = categories;

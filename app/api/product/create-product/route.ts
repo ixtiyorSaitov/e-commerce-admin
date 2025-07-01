@@ -60,8 +60,8 @@ export async function POST(req: Request) {
     const slug = slugify(name, { lower: true, strict: true });
 
     const product = await Product.create({
-      name,
-      description,
+      name: name.trim(),
+      description: description.trim(),
       slug,
       price,
       oldPrice,
