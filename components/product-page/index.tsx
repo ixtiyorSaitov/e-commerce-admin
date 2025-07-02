@@ -1,5 +1,7 @@
 "use client";
 
+import * as LucideIcons from "lucide-react";
+
 import { useState } from "react";
 import Image from "next/image";
 import {
@@ -17,6 +19,8 @@ import { Separator } from "@/components/ui/separator";
 import { IProduct } from "@/interfaces/product.interface";
 import { LoadingSpinner } from "../ui/loading-spinner";
 import { formatISODateToYMD } from "@/lib/format-date";
+import { ICategory } from "@/interfaces/category.interface";
+import { useRouter } from "next/navigation";
 
 const ProductPageComponent = ({ product }: { product: IProduct }) => {
   const [selectedImage, setSelectedImage] = useState(0);
@@ -48,6 +52,7 @@ const ProductPageComponent = ({ product }: { product: IProduct }) => {
       color: "text-purple-600 dark:text-purple-400",
     },
   ];
+  const router = useRouter();
 
   return (
     <div className="min-h-screen">
@@ -58,6 +63,7 @@ const ProductPageComponent = ({ product }: { product: IProduct }) => {
             variant="ghost"
             size="icon"
             className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800"
+            onClick={() => router.back()}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -82,7 +88,7 @@ const ProductPageComponent = ({ product }: { product: IProduct }) => {
                     alt="Product Image"
                     width={500}
                     height={500}
-                    className={`w-full h-full object-cover transition-opacity duration-300 ${
+                    className={`w-full h-full object-contain transition-opacity duration-300 ${
                       isLoading ? "opacity-0" : "opacity-100"
                     }`}
                     onLoad={() => setIsLoading(false)}
@@ -104,7 +110,7 @@ const ProductPageComponent = ({ product }: { product: IProduct }) => {
                         alt={`Thumbnail ${index + 1}`}
                         width={64}
                         height={64}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain"
                       />
                     </button>
                   ))}
@@ -124,14 +130,26 @@ const ProductPageComponent = ({ product }: { product: IProduct }) => {
                       {product.name}
                     </CardTitle>
                     <div className="flex items-center gap-2 mb-3">
-                      {product.categories.map((c) => (
-                        <Badge
-                          key={c}
-                          className="bg-blue-600 text-white hover:bg-blue-700"
-                        >
-                          {c}
-                        </Badge>
-                      ))}
+                      {(product.categories as unknown as ICategory[]).map(
+                        (ctg) => {
+                          const iconComponent =
+                            LucideIcons.icons[
+                              ctg.icon as keyof typeof LucideIcons.icons
+                            ];
+                          const Icon =
+                            iconComponent ?? LucideIcons.icons["Tag"];
+
+                          return (
+                            <Badge
+                              key={ctg._id}
+                              className="bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-1"
+                            >
+                              <Icon className="w-4 h-4" />
+                              {ctg.name}
+                            </Badge>
+                          );
+                        }
+                      )}
                     </div>
                     <div className="flex items-center gap-1 mb-4">
                       {[...Array(5)].map((_, i) => (
@@ -238,9 +256,13 @@ const ProductPageComponent = ({ product }: { product: IProduct }) => {
                     Kategoriya:
                   </span>
                   <span className="text-gray-900 dark:text-white font-medium">
-                    {product.categories.map(
-                      (c, i) =>
-                        `${c}${i + 1 !== product.categories.length ? ", " : ""}`
+                    {(product.categories as unknown as ICategory[]).map(
+                      (ctg, i) => (
+                        <>
+                          {ctg.name}
+                          {i + 1 !== product.categories.length ? ", " : ""}
+                        </>
+                      )
                     )}
                   </span>
                 </div>

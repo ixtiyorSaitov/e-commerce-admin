@@ -1,16 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Dispatch, SetStateAction } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import * as LucideIcons from "lucide-react";
 import { HelpCircle } from "lucide-react";
+import Link from "next/link";
 
 interface IconInputProps {
   value: string;
   onChange: (iconName: string) => void;
   label?: string;
+  disabled: boolean;
+  existIcon: boolean;
+  setExistIcon: Dispatch<SetStateAction<boolean>>;
 }
 
 // Dynamic icon getter
@@ -42,6 +46,8 @@ export function SimpleIconInput({
   value,
   onChange,
   label = "Icon",
+  setExistIcon,
+  disabled,
 }: IconInputProps) {
   const [inputValue, setInputValue] = useState(value);
   const IconComponent = getDynamicIcon(inputValue);
@@ -49,11 +55,14 @@ export function SimpleIconInput({
 
   useEffect(() => {
     setInputValue(value);
+    setExistIcon(exists);
   }, [value]);
 
   const handleChange = (newValue: string) => {
-    setInputValue(newValue);
-    onChange(newValue);
+    if (newValue.toLowerCase() !== "icon") {
+      setInputValue(newValue);
+      onChange(newValue);
+    }
   };
 
   return (
@@ -64,6 +73,7 @@ export function SimpleIconInput({
           <IconComponent size={20} />
         </div>
         <Input
+          disabled={disabled}
           value={inputValue}
           onChange={(e) => handleChange(e.target.value)}
           placeholder="Icon nomini kiriting (masalan: Home, User, Star)"
@@ -95,7 +105,15 @@ export function SimpleIconInput({
                   <code className="bg-white dark:bg-gray-800 dark:text-gray-100 px-1 rounded">
                     {inputValue}
                   </code>{" "}
-                  (so'roq belgisi ko'rsatilmoqda)
+                  | Icon nomini{" "}
+                  <Link
+                    className="text-blue-500 font-semibold hover:underline"
+                    target="_blank"
+                    href="https://lucide.dev/icons/"
+                  >
+                    Lucide Icons
+                  </Link>{" "}
+                  dan oling
                 </>
               )}
             </span>

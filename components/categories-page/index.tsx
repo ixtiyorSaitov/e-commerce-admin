@@ -35,11 +35,19 @@ import {
 } from "lucide-react";
 import { ICategory } from "@/interfaces/category.interface";
 import { OptimizedCategoryDialog } from "./category-dialog";
+import { AlertModal } from "../ui/alert-modal";
+import { toast } from "sonner";
+import axios from "axios";
 
 export function CategoriesPage({ datas }: { datas: ICategory[] }) {
   const [categories, setCategories] = useState<ICategory[]>(datas);
   const [searchTerm, setSearchTerm] = useState("");
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+  const [deleteAlert, setDeleteAlert] = useState<boolean>(false);
+  const [deletingCategory, setDeletingCategory] = useState<ICategory | null>(
+    null
+  );
+  const [deleteCategoryLoading, setDeleteCategoryLoading] = useState(false);
   const [editingCategory, setEditingCategory] = useState<ICategory | null>(
     null
   );
@@ -50,18 +58,26 @@ export function CategoriesPage({ datas }: { datas: ICategory[] }) {
       category.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddCategory = () => {
-    // setCategories([...categories, newCategory]);
-    // setDialogOpen(false);
+  const handleAddCategory = (newCategory: ICategory) => {
+    setCategories([...categories, newCategory]);
+    setDialogOpen(false);
   };
 
   const handleEditCategory = (category: ICategory) => {
-    // setEditingCategory(null);
-    // setDialogOpen(false);
+    setCategories(
+      categories.map((c) => {
+        if (c._id === category._id) {
+          return category;
+        }
+        return c;
+      })
+    );
+    setEditingCategory(null);
+    setDialogOpen(false);
   };
 
   const handleDeleteCategory = (id: string) => {
-    // setCategories(categories.filter((c) => c.id !== id));
+    setCategories(categories.filter((c) => c._id !== id));
   };
 
   const openEditDialog = (category: ICategory) => {
@@ -72,6 +88,32 @@ export function CategoriesPage({ datas }: { datas: ICategory[] }) {
   const openAddDialog = () => {
     setEditingCategory(null);
     setDialogOpen(true);
+  };
+
+  const handleDeleteProduct = async () => {
+    try {
+      setDeleteCategoryLoading(true);
+      const { data: response } = await axios.delete(
+        `/api/category/delete-category/${deletingCategory?._id}`
+      );
+      console.log(response);
+      if (response.success) {
+        toast.success("Error", {
+          description: "Category deleted successfully",
+        });
+        setCategories(
+          categories.filter((c) => c._id !== deletingCategory?._id)
+        );
+        setDeletingCategory(null);
+        setDeleteAlert(false);
+      }
+    } catch (error) {
+      toast.error("Error", {
+        description: "Error deleting with category",
+      });
+    } finally {
+      setDeleteCategoryLoading(false);
+    }
   };
 
   return (
@@ -182,7 +224,9 @@ export function CategoriesPage({ datas }: { datas: ICategory[] }) {
                     {category.description}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="secondary">{4} products</Badge>
+                    <Badge variant="secondary">
+                      {category.productCount} products
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <Badge
@@ -212,7 +256,10 @@ export function CategoriesPage({ datas }: { datas: ICategory[] }) {
                           Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleDeleteCategory(category._id)}
+                          onClick={() => {
+                            setDeleteAlert(true);
+                            setDeletingCategory(category);
+                          }}
                           className="text-destructive"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
@@ -233,6 +280,16 @@ export function CategoriesPage({ datas }: { datas: ICategory[] }) {
         onOpenChange={setDialogOpen}
         category={editingCategory}
         onSave={editingCategory ? handleEditCategory : handleAddCategory}
+        submitBtnVariant={"destructive"}
+      />
+      <AlertModal
+        open={deleteAlert}
+        setOpen={setDeleteAlert}
+        title="Delete category"
+        description={`Do you want delete this category: ${deletingCategory?.name}`}
+        submitBtnText="Delete"
+        loading={deleteCategoryLoading}
+        onSubmit={handleDeleteProduct}
       />
     </div>
   );

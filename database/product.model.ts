@@ -9,7 +9,7 @@ const ProductSchema = new mongoose.Schema(
     isOriginal: Boolean,
     slug: { type: String, required: true, unique: true },
     images: [String],
-    categories: [String],
+    categories: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
     benefits: [String],
     favourites: Number,
   },

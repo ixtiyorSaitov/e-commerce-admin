@@ -19,7 +19,7 @@ const ProductPage = () => {
     const getProduct = async () => {
       try {
         const { data: response } = await axios.get(
-          `/api/product/get-product?slug=${slug}`
+          `/api/product/get-product?slug=${slug}&populate=true`
         );
         console.log(response);
         if (response.success) {

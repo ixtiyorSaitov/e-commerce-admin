@@ -5,13 +5,27 @@ import { NextResponse } from "next/server";
 export async function GET() {
   try {
     await connectToDatabase();
-    const categories = await Category.find();
+
+    // Bazadan barcha kategoriyalarni olib kelamiz
+    const categories = await Category.find().lean();
+
+    // Har bir category uchun products o‘rniga productCount ni ajratamiz
+    const formattedCategories = categories.map((category) => {
+      const { products, ...rest } = category;
+      return {
+        ...rest,
+        productCount: products?.length || 0,
+      };
+    });
+
     return NextResponse.json(
-      { success: true, datas: categories },
+      { success: true, datas: formattedCategories },
       { status: 200 }
     );
   } catch (error) {
-    const result = error as Error;
-    return NextResponse.json({ error: result.message }, { status: 400 });
+    return NextResponse.json(
+      { error: (error as Error).message },
+      { status: 400 }
+    );
   }
 }

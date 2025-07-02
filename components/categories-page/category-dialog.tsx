@@ -22,21 +22,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SimpleIconInput } from "./set-icon";
+import axios from "axios";
+import { LoadingSpinner } from "../ui/loading-spinner";
+import { ICategory } from "@/interfaces/category.interface";
 // import { FullIconPicker } from "./full-icon-picker" // Agar to'liq versiya kerak bo'lsa
-
-interface ICategory {
-  name: string;
-  description: string;
-  status: "active" | "inactive";
-  icon: string;
-  productCount: number;
-}
 
 interface CategoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   category?: ICategory | null;
   onSave: (category: ICategory) => void;
+  submitBtnVariant?:
+    | "default"
+    | "destructive"
+    | "ghost"
+    | "link"
+    | "outline"
+    | "secondary";
 }
 
 export function OptimizedCategoryDialog({
@@ -44,14 +46,16 @@ export function OptimizedCategoryDialog({
   onOpenChange,
   category,
   onSave,
+  submitBtnVariant = "default",
 }: CategoryDialogProps) {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     status: "active" as "active" | "inactive",
     icon: "Home",
-    productCount: 0,
   });
+  const [iconExists, setIconExists] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (category) {
@@ -59,7 +63,6 @@ export function OptimizedCategoryDialog({
         name: category.name,
         description: category.description,
         status: category.status || "active",
-        productCount: category.productCount,
         icon: category.icon || "Home",
       });
     } else {
@@ -67,15 +70,37 @@ export function OptimizedCategoryDialog({
         name: "",
         description: "",
         status: "active",
-        productCount: 0,
         icon: "Home",
       });
     }
   }, [category]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave(formData as ICategory);
+  const handleSubmit = async () => {
+    console.log(formData);
+    try {
+      setLoading(true);
+      const isEditing = !!category;
+      const endpoint = isEditing
+        ? `/api/category/edit-category/${category._id}`
+        : "/api/category/create-category";
+      const method = isEditing ? "put" : "post";
+
+      const { data: response } = await axios[method](endpoint, formData);
+      if (response.success) {
+        onSave(response.data);
+        setFormData({
+          name: "",
+          description: "",
+          status: "active",
+          icon: "Home",
+        });
+      }
+      console.log(response);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -92,10 +117,11 @@ export function OptimizedCategoryDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Category Name</Label>
             <Input
+              disabled={loading}
               id="name"
               value={formData.name}
               onChange={(e) =>
@@ -109,6 +135,7 @@ export function OptimizedCategoryDialog({
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
             <Textarea
+              disabled={loading}
               id="description"
               value={formData.description}
               onChange={(e) =>
@@ -121,20 +148,15 @@ export function OptimizedCategoryDialog({
 
           {/* Simple icon input - yengil versiya */}
           <SimpleIconInput
+            existIcon={iconExists}
+            setExistIcon={setIconExists}
+            disabled={loading}
             value={formData.icon}
             onChange={(iconName) =>
               setFormData({ ...formData, icon: iconName })
             }
             label="Icon"
           />
-
-          {/* Yoki to'liq versiya uchun:
-          <FullIconPicker
-            value={formData.icon}
-            onChange={(iconName) => setFormData({ ...formData, icon: iconName })}
-            label="Icon"
-          />
-          */}
 
           <div className="space-y-2">
             <Label>Status</Label>
@@ -173,13 +195,16 @@ export function OptimizedCategoryDialog({
               Cancel
             </Button>
             <Button
-              type="submit"
+              variant={submitBtnVariant}
               className="bg-gradient-to-r from-primary to-primary/90"
+              onClick={handleSubmit}
+              disabled={loading || !iconExists}
             >
               {category ? "Update Category" : "Create Category"}
+              {loading && <LoadingSpinner size="sm" />}
             </Button>
           </DialogFooter>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

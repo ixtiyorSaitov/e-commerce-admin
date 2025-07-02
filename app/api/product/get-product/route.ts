@@ -7,8 +7,10 @@ export async function GET(req: Request) {
   try {
     await connectToDatabase();
     const { searchParams } = new URL(req.url);
+
     const categorySlug = searchParams.get("category");
     const productSlug = searchParams.get("slug");
+    const populate = searchParams.get("populate") === "true"; // 'true' bo'lsa boolean true
 
     if (categorySlug && !productSlug) {
       const category = await Category.findOne({ name: categorySlug });
@@ -19,10 +21,10 @@ export async function GET(req: Request) {
         );
       }
 
-      // Optimallashtirilgan filter
-      const filteredProducts = await Product.find({
-        categories: category._id,
-      });
+      const query = Product.find({ categories: category._id });
+      if (populate) query.populate("categories");
+
+      const filteredProducts = await query;
 
       return NextResponse.json({
         success: true,
@@ -30,22 +32,27 @@ export async function GET(req: Request) {
         datas: filteredProducts,
       });
     }
+
     if (productSlug) {
-      const product = await Product.findOne({ slug: productSlug });
+      const query = Product.findOne({ slug: productSlug });
+      if (populate) query.populate("categories");
+
+      const product = await query;
       if (!product) {
-        return NextResponse.json(
-          { error: "Product not found" },
-          // { status: 200 }
-        );
+        return NextResponse.json({ error: "Product not found" });
       }
+
       return NextResponse.json(
         { success: true, data: product },
         { status: 200 }
       );
     }
 
-    // Kategoriya berilmagan bo‘lsa, barcha productlar
-    const products = await Product.find();
+    // populate ? await Product.find().populate(...) : await Product.find();
+    const query = Product.find();
+    if (populate) query.populate("categories");
+
+    const products = await query;
     return NextResponse.json(
       { success: true, datas: products },
       { status: 200 }

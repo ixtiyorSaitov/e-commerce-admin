@@ -1,7 +1,9 @@
 import Admin from "@/database/admin.model";
+import Category from "@/database/category.model";
 import Product from "@/database/product.model";
 import { authOptions } from "@/lib/auth-options";
 import { connectToDatabase } from "@/lib/mongoose";
+import mongoose from "mongoose";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import slugify from "slugify";
@@ -41,7 +43,6 @@ export async function POST(req: Request) {
       benefits,
       isOriginal,
     }: ProductData = await req.json();
-
     if (
       !name?.trim() ||
       !description?.trim() ||
@@ -56,6 +57,15 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+    if (categories.length === 0) {
+      return NextResponse.json(
+        { error: "Category is require" },
+        { status: 400 }
+      );
+    }
+    const categoryObjectIds = categories.map(
+      (id) => new mongoose.Types.ObjectId(id)
+    );
 
     const slug = slugify(name, { lower: true, strict: true });
 
@@ -65,11 +75,21 @@ export async function POST(req: Request) {
       slug,
       price,
       oldPrice,
-      categories,
+      categories: categoryObjectIds,
       images,
       benefits,
       isOriginal: isOriginal || false,
     });
+
+    // 🔥 Har bir categoryga productni qo‘shish
+    await Promise.all(
+      categoryObjectIds.map((categoryId) =>
+        Category.updateOne(
+          { _id: categoryId },
+          { $addToSet: { products: product._id } } // takrorlanmasin deb
+        )
+      )
+    );
 
     return NextResponse.json({ success: true, data: product }, { status: 201 });
   } catch (error) {

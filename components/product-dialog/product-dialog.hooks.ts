@@ -33,7 +33,11 @@ export function useProductDialog({
   product,
   onOpenChange,
   onSave,
-}: Pick<ProductDialogProps, "product" | "onOpenChange" | "onSave">) {
+  categories,
+}: Pick<
+  ProductDialogProps,
+  "product" | "onOpenChange" | "onSave" | "categories"
+>) {
   const [loading, setLoading] = useState(false);
   const [imageError, setImageError] = useState<StrOrNull>(null);
   const [initialImages, setInitialImages] = useState<string[]>(
@@ -129,12 +133,16 @@ export function useProductDialog({
       for (const url of deleted) {
         await deleteImage({ url, bucket: "dank-pics" });
       }
+      // const ctgWithId = categories
+      //   ?.filter((ctg) => formData.categories.includes(ctg.slug))
+      //   .map((ctg) => ctg._id);
 
       const productData = {
         ...formData,
         price: Number(formData.price),
         oldPrice: formData.oldPrice ? Number(formData.oldPrice) : null,
         images: [...initialImages, ...uploadedUrls],
+        // categories: ctgWithId,
       };
 
       const isEditing = !!product;
@@ -144,6 +152,7 @@ export function useProductDialog({
       const method = isEditing ? "put" : "post";
 
       const { data: response } = await axios[method](endpoint, productData);
+      console.log(response);
 
       if (response.success) {
         onSave(response.data);
@@ -216,5 +225,6 @@ export function useProductDialog({
     setInitialImages,
     newImages,
     setNewImages,
+    setFormData,
   };
 }

@@ -51,7 +51,8 @@ export function ProductDialog({
     setInitialImages,
     newImages,
     setNewImages,
-  } = useProductDialog({ product, onOpenChange, onSave });
+    setFormData,
+  } = useProductDialog({ product, onOpenChange, onSave, categories });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -88,8 +89,14 @@ export function ProductDialog({
               disabled={loading}
               value=""
               onValueChange={(value) => {
-                if (value && !formData.categories.includes(value)) {
-                  handleChange("categories", [...formData.categories, value]);
+                if (value) {
+                  const ctg = categories?.find((c) => c.slug === value);
+                  if (ctg) {
+                    setFormData({
+                      ...formData,
+                      categories: [...formData.categories, ctg?._id],
+                    });
+                  }
                 }
               }}
             >
@@ -105,23 +112,26 @@ export function ProductDialog({
               </SelectContent>
             </Select>
             <div className="flex flex-wrap gap-2 mt-2">
-              {formData.categories.map((category) => (
-                <Badge
-                  key={category}
-                  variant="secondary"
-                  className="flex items-center gap-1"
-                >
-                  {category}
-                  <button
-                    disabled={loading}
-                    type="button"
-                    onClick={() => removeItem("categories", category)}
-                    className="ml-1 hover:text-destructive"
+              {formData.categories.map((category) => {
+                const ctg = categories?.find((f) => f._id === category);
+                return (
+                  <Badge
+                    key={category}
+                    variant="secondary"
+                    className="flex items-center gap-1"
                   >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
+                    {ctg?.name}
+                    <button
+                      disabled={loading}
+                      type="button"
+                      onClick={() => removeItem("categories", category)}
+                      className="ml-1 hover:text-destructive"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                );
+              })}
             </div>
             {errors.categoryError && (
               <p className="text-[13px] text-destructive">

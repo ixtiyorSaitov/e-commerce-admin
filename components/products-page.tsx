@@ -28,9 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ProductDialog } from "@/components/product-dialog";
 import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye } from "lucide-react";
-import type { Product } from "@/types";
 import { ICategory } from "@/interfaces/category.interface";
-import { LoadingSpinner } from "./ui/loading-spinner";
 import { IProduct } from "@/interfaces/product.interface";
 import Image from "next/image";
 import ReactStars from "react-stars";
@@ -233,14 +231,17 @@ export function ProductsPage() {
                         {product.categories.map((c, i) => {
                           if (i > 2) {
                             return;
-                          } else {
-                            const ctg = categories?.find((f) => f.slug === c);
-                            return (
-                              <div key={i} className="w-full">
-                                <Badge variant="secondary">{ctg?.name}</Badge>
-                              </div>
-                            );
                           }
+                          const ctg = categories?.find((f) => f._id === c);
+                          return (
+                            <Badge
+                              className="flex items-center justify-center line-clamp-1 max-w-[200px]"
+                              key={c}
+                              variant="secondary"
+                            >
+                              {ctg?.name}
+                            </Badge>
+                          );
                         })}
                       </div>
                     </TableCell>
