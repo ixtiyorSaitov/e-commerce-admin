@@ -59,7 +59,7 @@ export function ProductsPage() {
           setCategories(response.datas);
         }
       } catch (error) {
-        console.error("Kategoriyani olishda xatolik");
+        console.error("Kategoriyani olishda xatolik", error);
       }
     };
     const fetchProducts = async () => {
@@ -70,7 +70,7 @@ export function ProductsPage() {
           setProducts(response.datas);
         }
       } catch (error) {
-        console.error("Kategoriyani olishda xatolik");
+        console.error("Kategoriyani olishda xatolik", error);
       } finally {
         setProductsLoading(false);
       }
@@ -97,6 +97,8 @@ export function ProductsPage() {
   };
 
   const handleEditProduct = (product: IProduct) => {
+    console.log(product);
+    
     // setProducts(products.map((p) => (p.id === product.id ? product : p)));
     setEditingProduct(null);
     setDialogOpen(false);

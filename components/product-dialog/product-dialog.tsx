@@ -38,7 +38,6 @@ export function ProductDialog({
     loading,
     formData,
     errors,
-    imageUrls,
     newBenefit,
     handleSubmit,
     handleChange,

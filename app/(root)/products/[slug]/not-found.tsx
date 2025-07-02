@@ -47,12 +47,12 @@ export default function ProductNotFound() {
               <CardContent className="space-y-6">
                 <div className="space-y-3">
                   <p className="text-gray-600 dark:text-slate-400 leading-relaxed">
-                    Kechirasiz, siz qidirayotgan mahsulot mavjud emas yoki
-                    o'chirilgan bo'lishi mumkin.
+                    {` Kechirasiz, siz qidirayotgan mahsulot mavjud emas yoki
+                    o'chirilgan bo'lishi mumkin.`}
                   </p>
                   <p className="text-gray-600 dark:text-slate-400 leading-relaxed">
-                    Iltimos, mahsulot nomini tekshiring yoki boshqa
-                    mahsulotlarni ko'rib chiqing.
+                    {`Iltimos, mahsulot nomini tekshiring yoki boshqa
+                    mahsulotlarni ko'rib chiqing.`}
                   </p>
                 </div>
 
@@ -100,7 +100,7 @@ export default function ProductNotFound() {
                               Barcha mahsulotlar
                             </h4>
                             <p className="text-sm text-gray-600 dark:text-slate-400">
-                              Katalogni ko'rish
+                              {"Katalogni ko'rish"}
                             </p>
                           </div>
                         </div>

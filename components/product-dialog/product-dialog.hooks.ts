@@ -33,7 +33,6 @@ export function useProductDialog({
   product,
   onOpenChange,
   onSave,
-  categories,
 }: Pick<
   ProductDialogProps,
   "product" | "onOpenChange" | "onSave" | "categories"
@@ -202,7 +201,7 @@ export function useProductDialog({
   );
 
   const handleChange = useCallback(
-    (field: keyof ProductFormData, value: any) => {
+    <K extends keyof ProductFormData>(field: K, value: ProductFormData[K]) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
     },
     []

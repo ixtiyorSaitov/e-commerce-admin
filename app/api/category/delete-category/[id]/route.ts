@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     await connectToDatabase();
@@ -22,7 +22,7 @@ export async function DELETE(
     if (!admin) {
       return NextResponse.json({ error: "Admin not found" }, { status: 404 });
     }
-    const id = params.id;
+    const { id } = context.params;
 
     const category = await Category.findById(id);
 

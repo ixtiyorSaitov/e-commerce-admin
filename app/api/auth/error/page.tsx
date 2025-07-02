@@ -50,7 +50,7 @@ export default function AuthErrorPage() {
                 <span className="text-red-400 font-bold">cannot access</span>{" "}
                 this admin panel because{" "}
                 <span className="bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent font-black">
-                  you don't have permission
+                  {"you don't have permission"}
                 </span>
                 .<br />
                 <span className="text-lg text-gray-300 mt-2 block">

@@ -16,30 +16,35 @@ interface IconInputProps {
   existIcon: boolean;
   setExistIcon: Dispatch<SetStateAction<boolean>>;
 }
-
-// Dynamic icon getter
-function getDynamicIcon(iconName: string) {
+// Faqat icon bo‘lganlar (JSX component) ni ajratib olish
+function getDynamicIcon(iconName: string): React.FC<LucideIcons.LucideProps> {
   if (!iconName) return HelpCircle;
 
-  // Convert to PascalCase
   const pascalName = iconName
     .split(/[\s-_]+/)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join("");
 
-  // Get icon from Lucide exports
-  const IconComponent = (LucideIcons as any)[pascalName];
-  return IconComponent || HelpCircle;
+  const Icon = (LucideIcons as Record<string, unknown>)[pascalName];
+
+  // Icon JSX component ekanligini tekshiramiz
+  if (typeof Icon === "function" || typeof Icon === "object") {
+    return Icon as React.FC<LucideIcons.LucideProps>;
+  }
+
+  return HelpCircle;
 }
 
-// Check if icon exists
 function iconExists(iconName: string): boolean {
   if (!iconName) return false;
+
   const pascalName = iconName
     .split(/[\s-_]+/)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join("");
-  return !!(LucideIcons as any)[pascalName];
+
+  const Icon = (LucideIcons as Record<string, unknown>)[pascalName];
+  return typeof Icon === "function" || typeof Icon === "object";
 }
 
 export function SimpleIconInput({
@@ -55,8 +60,8 @@ export function SimpleIconInput({
 
   useEffect(() => {
     setInputValue(value);
-    setExistIcon(exists);
-  }, [value]);
+    setExistIcon(iconExists(value));
+  }, [value, setExistIcon]);
 
   const handleChange = (newValue: string) => {
     if (newValue.toLowerCase() !== "icon") {

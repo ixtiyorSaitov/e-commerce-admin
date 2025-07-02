@@ -76,9 +76,9 @@ export function CategoriesPage({ datas }: { datas: ICategory[] }) {
     setDialogOpen(false);
   };
 
-  const handleDeleteCategory = (id: string) => {
-    setCategories(categories.filter((c) => c._id !== id));
-  };
+  // const handleDeleteCategory = (id: string) => {
+  //   setCategories(categories.filter((c) => c._id !== id));
+  // };
 
   const openEditDialog = (category: ICategory) => {
     setEditingCategory(category);
@@ -111,6 +111,7 @@ export function CategoriesPage({ datas }: { datas: ICategory[] }) {
       toast.error("Error", {
         description: "Error deleting with category",
       });
+      console.log(error);
     } finally {
       setDeleteCategoryLoading(false);
     }

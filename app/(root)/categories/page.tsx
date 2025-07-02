@@ -21,7 +21,7 @@ export default function Categories() {
           setCategories(response.datas);
         }
       } catch (error) {
-        console.error("Error get with categories");
+        console.error("Error get with categories", error);
       } finally {
         setLoading(false);
       }

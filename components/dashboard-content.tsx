@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Package, Users, ShoppingCart, TrendingUp, ArrowUpRight, ArrowDownRight, Plus, Send, Tag } from "lucide-react"
-import { useRouter } from "next/navigation"
 import { ProductDialog } from "@/components/modals/product-dialog"
 import { NotificationDialog } from "@/components/modals/notification-dialog"
 import { PromoCodeDialog } from "@/components/modals/promo-code-dialog"
@@ -58,7 +57,6 @@ const recentActivity = [
 ]
 
 export function DashboardContent() {
-  const router = useRouter()
   const [productDialogOpen, setProductDialogOpen] = useState(false)
   const [notificationDialogOpen, setNotificationDialogOpen] = useState(false)
   const [promoDialogOpen, setPromoDialogOpen] = useState(false)

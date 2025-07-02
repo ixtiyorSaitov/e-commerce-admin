@@ -10,7 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/components/auth-provider";
 import { Moon, Sun, LogOut, Settings, User, Bell } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
@@ -22,7 +21,7 @@ interface HeaderProps {
   setSidebarOpen: (open: boolean) => void;
 }
 
-export function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
+export function Header({}: HeaderProps) {
   const { theme, setTheme } = useTheme();
   const { data: session } = useSession();
   const router = useRouter();

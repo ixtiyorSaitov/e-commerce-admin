@@ -247,7 +247,7 @@ const ProductPageComponent = ({ product }: { product: IProduct }) => {
             <Card className="bg-white border-gray-200 shadow-lg dark:bg-slate-800/50 dark:border-slate-700">
               <CardHeader>
                 <CardTitle className="text-gray-900 dark:text-white">
-                  Qo'shimcha ma'lumotlar
+                  {"Qo'shimcha ma'lumotlar"}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -276,7 +276,7 @@ const ProductPageComponent = ({ product }: { product: IProduct }) => {
                 <Separator className="bg-gray-200 dark:bg-slate-700" />
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 dark:text-slate-300">
-                    Qo'shilgan sana:
+                    {"Qo'shilgan sana:"}
                   </span>
                   <span className="text-gray-900 dark:text-white font-medium">
                     {formatISODateToYMD(product.createdAt)}

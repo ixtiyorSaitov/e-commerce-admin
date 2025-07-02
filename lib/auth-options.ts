@@ -24,7 +24,7 @@ export const authOptions: AuthOptions = {
       }
 
       // Ma'lumotlar bazasida yo'q bo'lsa ham faqat shu email bo'lsa yaratamiz
-      let existingUser = await Admin.findOne({ email: user.email });
+      const existingUser = await Admin.findOne({ email: user.email });
 
       if (!existingUser) {
         await Admin.create({

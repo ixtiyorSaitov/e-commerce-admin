@@ -28,13 +28,13 @@ const ProductPage = () => {
           notFound();
         }
       } catch (error) {
-        console.error("Error with get product");
+        console.error("Error with get product", error);
       } finally {
         setLoading(false);
       }
     };
     getProduct();
-  }, []);
+  }, [slug]);
   return (
     <AdminLayout>
       {loading ? (
