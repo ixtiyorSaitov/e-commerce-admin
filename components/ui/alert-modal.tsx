@@ -19,6 +19,7 @@ interface AlertModal {
   loading: boolean;
   onSubmit: () => void;
   submitBtnText?: string;
+  submitBtnVariant?: "default" | "ghost" | "destructive" | "link" | "outline";
 }
 
 export function AlertModal({
@@ -28,6 +29,7 @@ export function AlertModal({
   description,
   loading,
   onSubmit,
+  submitBtnVariant = "default",
   submitBtnText = "Continue",
 }: AlertModal) {
   return (
@@ -42,7 +44,11 @@ export function AlertModal({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
-          <Button onClick={onSubmit} disabled={loading}>
+          <Button
+            variant={submitBtnVariant}
+            onClick={onSubmit}
+            disabled={loading}
+          >
             {submitBtnText}
             {loading && <LoadingSpinner size="sm" />}
           </Button>

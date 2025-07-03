@@ -13,8 +13,6 @@ export async function PUT(
   try {
     await connectToDatabase();
     const { id } = await params;
-
-    await connectToDatabase();
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.email) {
