@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import type React from "react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -12,19 +12,28 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tag, Shuffle } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tag, Shuffle } from "lucide-react";
+import { toast } from "sonner";
 
 interface PromoCodeDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSave: () => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: () => void;
 }
 
-export function PromoCodeDialog({ open, onOpenChange, onSave }: PromoCodeDialogProps) {
-  const { toast } = useToast()
+export function PromoCodeDialog({
+  open,
+  onOpenChange,
+  onSave,
+}: PromoCodeDialogProps) {
   const [formData, setFormData] = useState({
     code: "",
     description: "",
@@ -33,33 +42,30 @@ export function PromoCodeDialog({ open, onOpenChange, onSave }: PromoCodeDialogP
     minOrder: "",
     maxUses: "",
     expiresAt: "",
-  })
+  });
 
   const generateRandomCode = () => {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    let result = ""
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let result = "";
     for (let i = 0; i < 8; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length))
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    setFormData({ ...formData, code: result })
-  }
+    setFormData({ ...formData, code: result });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!formData.code || !formData.description || !formData.value) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Please fill in all required fields",
-        variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    toast({
-      title: "Success",
+    toast.success("Success", {
       description: "Promo code created successfully!",
-    })
+    });
 
     // Reset form
     setFormData({
@@ -70,10 +76,10 @@ export function PromoCodeDialog({ open, onOpenChange, onSave }: PromoCodeDialogP
       minOrder: "",
       maxUses: "",
       expiresAt: "",
-    })
+    });
 
-    onSave()
-  }
+    onSave();
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -84,8 +90,12 @@ export function PromoCodeDialog({ open, onOpenChange, onSave }: PromoCodeDialogP
               <Tag className="h-5 w-5 text-purple-600" />
             </div>
             <div>
-              <DialogTitle className="text-xl font-semibold">Create Promo Code</DialogTitle>
-              <DialogDescription>Generate a new discount code for your customers</DialogDescription>
+              <DialogTitle className="text-xl font-semibold">
+                Create Promo Code
+              </DialogTitle>
+              <DialogDescription>
+                Generate a new discount code for your customers
+              </DialogDescription>
             </div>
           </div>
         </DialogHeader>
@@ -97,11 +107,21 @@ export function PromoCodeDialog({ open, onOpenChange, onSave }: PromoCodeDialogP
               <Input
                 id="code"
                 value={formData.code}
-                onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    code: e.target.value.toUpperCase(),
+                  })
+                }
                 placeholder="Enter code"
                 required
               />
-              <Button type="button" variant="outline" onClick={generateRandomCode} size="icon">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={generateRandomCode}
+                size="icon"
+              >
                 <Shuffle className="h-4 w-4" />
               </Button>
             </div>
@@ -112,7 +132,9 @@ export function PromoCodeDialog({ open, onOpenChange, onSave }: PromoCodeDialogP
             <Input
               id="description"
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
               placeholder="Enter description"
               required
             />
@@ -123,7 +145,9 @@ export function PromoCodeDialog({ open, onOpenChange, onSave }: PromoCodeDialogP
               <Label>Discount Type</Label>
               <Select
                 value={formData.type}
-                onValueChange={(value: "percentage" | "fixed") => setFormData({ ...formData, type: value })}
+                onValueChange={(value: "percentage" | "fixed") =>
+                  setFormData({ ...formData, type: value })
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -135,12 +159,16 @@ export function PromoCodeDialog({ open, onOpenChange, onSave }: PromoCodeDialogP
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="value">{formData.type === "percentage" ? "Percentage *" : "Amount *"}</Label>
+              <Label htmlFor="value">
+                {formData.type === "percentage" ? "Percentage *" : "Amount *"}
+              </Label>
               <Input
                 id="value"
                 type="number"
                 value={formData.value}
-                onChange={(e) => setFormData({ ...formData, value: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, value: e.target.value })
+                }
                 placeholder={formData.type === "percentage" ? "25" : "10"}
                 required
               />
@@ -154,7 +182,9 @@ export function PromoCodeDialog({ open, onOpenChange, onSave }: PromoCodeDialogP
                 id="minOrder"
                 type="number"
                 value={formData.minOrder}
-                onChange={(e) => setFormData({ ...formData, minOrder: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, minOrder: e.target.value })
+                }
                 placeholder="100"
               />
             </div>
@@ -164,7 +194,9 @@ export function PromoCodeDialog({ open, onOpenChange, onSave }: PromoCodeDialogP
                 id="maxUses"
                 type="number"
                 value={formData.maxUses}
-                onChange={(e) => setFormData({ ...formData, maxUses: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, maxUses: e.target.value })
+                }
                 placeholder="1000"
               />
             </div>
@@ -176,12 +208,18 @@ export function PromoCodeDialog({ open, onOpenChange, onSave }: PromoCodeDialogP
               id="expiresAt"
               type="date"
               value={formData.expiresAt}
-              onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, expiresAt: e.target.value })
+              }
             />
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
             <Button
@@ -194,5 +232,5 @@ export function PromoCodeDialog({ open, onOpenChange, onSave }: PromoCodeDialogP
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -1,21 +1,33 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { useAuth } from "@/components/auth-provider"
-import { Camera, Save, User, Mail, Calendar, Shield, Edit } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Camera, Save, User, Mail, Calendar, Shield, Edit } from "lucide-react";
+import { toast } from "sonner";
 
 export function ProfilePage() {
-  const { user } = useAuth()
-  const { toast } = useToast()
-  const [isEditing, setIsEditing] = useState(false)
+  const user = {
+    name: "",
+    email: "",
+    bio: "",
+    phone: "",
+    location: "",
+    website: "",
+    image: "",
+  };
+  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
@@ -23,22 +35,22 @@ export function ProfilePage() {
     phone: "+1 (555) 123-4567",
     location: "San Francisco, CA",
     website: "https://example.com",
-  })
+    image: "",
+  });
 
   const handleSave = () => {
-    toast({
-      title: "Profile Updated",
+    toast.success("Profile Updated", {
       description: "Your profile has been successfully updated.",
-    })
-    setIsEditing(false)
-  }
+    });
+    setIsEditing(false);
+  };
 
   const stats = [
     { label: "Products Managed", value: "1,234", color: "text-emerald-600" },
     { label: "Users Registered", value: "8,945", color: "text-blue-600" },
     { label: "Orders Processed", value: "2,456", color: "text-purple-600" },
     { label: "Revenue Generated", value: "$45,678", color: "text-orange-600" },
-  ]
+  ];
 
   return (
     <div className="space-y-8">
@@ -46,7 +58,9 @@ export function ProfilePage() {
         <h1 className="text-4xl font-bold bg-gradient-to-r from-violet-600 to-blue-600 bg-clip-text text-transparent">
           Profile
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">Manage your account information and preferences</p>
+        <p className="text-gray-600 dark:text-gray-400 mt-2">
+          Manage your account information and preferences
+        </p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -54,7 +68,10 @@ export function ProfilePage() {
           <CardHeader className="text-center">
             <div className="relative mx-auto">
               <Avatar className="w-24 h-24 ring-4 ring-violet-500/20">
-                <AvatarImage src={user?.image || "/placeholder.svg"} alt={user?.name} />
+                <AvatarImage
+                  src={user?.image || "/placeholder.svg"}
+                  alt={user?.name}
+                />
                 <AvatarFallback className="bg-gradient-to-br from-violet-500 to-blue-500 text-white text-2xl font-bold">
                   {user?.name?.charAt(0)}
                 </AvatarFallback>
@@ -67,7 +84,9 @@ export function ProfilePage() {
               </Button>
             </div>
             <div className="space-y-2">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{user?.name}</h3>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                {user?.name}
+              </h3>
               <p className="text-gray-500 dark:text-gray-400">{user?.email}</p>
               <Badge className="bg-gradient-to-r from-violet-500 to-blue-500 text-white">
                 <Shield className="w-3 h-3 mr-1" />
@@ -83,8 +102,12 @@ export function ProfilePage() {
                     key={index}
                     className="text-center p-3 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700"
                   >
-                    <div className={`text-lg font-bold ${stat.color}`}>{stat.value}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">{stat.label}</div>
+                    <div className={`text-lg font-bold ${stat.color}`}>
+                      {stat.value}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      {stat.label}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -99,7 +122,9 @@ export function ProfilePage() {
                 <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
                   Personal Information
                 </CardTitle>
-                <CardDescription>Update your personal details and contact information</CardDescription>
+                <CardDescription>
+                  Update your personal details and contact information
+                </CardDescription>
               </div>
               <Button
                 onClick={() => setIsEditing(!isEditing)}
@@ -125,7 +150,9 @@ export function ProfilePage() {
                 <Input
                   id="name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   disabled={!isEditing}
                   className="disabled:opacity-70"
                 />
@@ -139,7 +166,9 @@ export function ProfilePage() {
                   id="email"
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
                   disabled={!isEditing}
                   className="disabled:opacity-70"
                 />
@@ -152,7 +181,9 @@ export function ProfilePage() {
                 <Input
                   id="phone"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
                   disabled={!isEditing}
                   className="disabled:opacity-70"
                 />
@@ -162,7 +193,9 @@ export function ProfilePage() {
                 <Input
                   id="location"
                   value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, location: e.target.value })
+                  }
                   disabled={!isEditing}
                   className="disabled:opacity-70"
                 />
@@ -174,7 +207,9 @@ export function ProfilePage() {
               <Input
                 id="website"
                 value={formData.website}
-                onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, website: e.target.value })
+                }
                 disabled={!isEditing}
                 className="disabled:opacity-70"
               />
@@ -185,7 +220,9 @@ export function ProfilePage() {
               <Textarea
                 id="bio"
                 value={formData.bio}
-                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, bio: e.target.value })
+                }
                 disabled={!isEditing}
                 className="disabled:opacity-70 min-h-[100px]"
               />
@@ -215,23 +252,45 @@ export function ProfilePage() {
             <Calendar className="w-5 h-5" />
             <span>Account Activity</span>
           </CardTitle>
-          <CardDescription>Recent account activities and login history</CardDescription>
+          <CardDescription>
+            Recent account activities and login history
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {[
-              { action: "Profile updated", time: "2 hours ago", ip: "192.168.1.1" },
-              { action: "Password changed", time: "1 day ago", ip: "192.168.1.1" },
-              { action: "Login from new device", time: "3 days ago", ip: "10.0.0.1" },
-              { action: "Email verified", time: "1 week ago", ip: "192.168.1.1" },
+              {
+                action: "Profile updated",
+                time: "2 hours ago",
+                ip: "192.168.1.1",
+              },
+              {
+                action: "Password changed",
+                time: "1 day ago",
+                ip: "192.168.1.1",
+              },
+              {
+                action: "Login from new device",
+                time: "3 days ago",
+                ip: "10.0.0.1",
+              },
+              {
+                action: "Email verified",
+                time: "1 week ago",
+                ip: "192.168.1.1",
+              },
             ].map((activity, index) => (
               <div
                 key={index}
                 className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700"
               >
                 <div>
-                  <p className="font-medium text-gray-900 dark:text-white">{activity.action}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">IP: {activity.ip}</p>
+                  <p className="font-medium text-gray-900 dark:text-white">
+                    {activity.action}
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    IP: {activity.ip}
+                  </p>
                 </div>
                 <Badge variant="secondary">{activity.time}</Badge>
               </div>
@@ -240,5 +299,5 @@ export function ProfilePage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

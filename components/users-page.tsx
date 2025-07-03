@@ -1,15 +1,52 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Search, MoreHorizontal, Edit, Ban, Mail, UsersIcon } from "lucide-react"
-import type { User } from "@/types"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Search,
+  MoreHorizontal,
+  Edit,
+  Ban,
+  Mail,
+  UsersIcon,
+} from "lucide-react";
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  image: string;
+  role: "customer" | "adminstrator";
+  status: "active" | "inactive";
+  joinedAt: string;
+  lastActive: string;
+  totalOrders: number;
+  totalSpent: number;
+}
 
 const mockUsers: User[] = [
   {
@@ -48,25 +85,30 @@ const mockUsers: User[] = [
     totalOrders: 3,
     totalSpent: 245.75,
   },
-]
+];
 
 export function UsersPage() {
-  const [users, setUsers] = useState<User[]>(mockUsers)
-  const [searchTerm, setSearchTerm] = useState("")
+  const [users, setUsers] = useState<User[]>(mockUsers);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const filteredUsers = users.filter(
     (user) =>
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleToggleStatus = (id: string) => {
     setUsers(
       users.map((user) =>
-        user.id === id ? { ...user, status: user.status === "active" ? "inactive" : "active" } : user,
-      ),
-    )
-  }
+        user.id === id
+          ? {
+              ...user,
+              status: user.status === "active" ? "inactive" : "active",
+            }
+          : user
+      )
+    );
+  };
 
   const stats = [
     {
@@ -81,30 +123,42 @@ export function UsersPage() {
     },
     {
       title: "Total Revenue",
-      value: `$${users.reduce((sum, u) => sum + (u.totalSpent || 0), 0).toFixed(2)}`,
+      value: `$${users
+        .reduce((sum, u) => sum + (u.totalSpent || 0), 0)
+        .toFixed(2)}`,
       color: "text-purple-600",
     },
     {
       title: "Avg Order Value",
-      value: `$${(users.reduce((sum, u) => sum + (u.totalSpent || 0), 0) / users.reduce((sum, u) => sum + (u.totalOrders || 0), 0) || 0).toFixed(2)}`,
+      value: `$${(
+        users.reduce((sum, u) => sum + (u.totalSpent || 0), 0) /
+          users.reduce((sum, u) => sum + (u.totalOrders || 0), 0) || 0
+      ).toFixed(2)}`,
       color: "text-orange-600",
     },
-  ]
+  ];
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Users</h1>
-          <p className="text-muted-foreground">Manage and monitor your customers</p>
+          <p className="text-muted-foreground">
+            Manage and monitor your customers
+          </p>
         </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-4">
         {stats.map((stat, index) => (
-          <Card key={index} className="border-0 shadow-lg bg-card/50 backdrop-blur-sm">
+          <Card
+            key={index}
+            className="border-0 shadow-lg bg-card/50 backdrop-blur-sm"
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                {stat.title}
+              </CardTitle>
               <UsersIcon className={`h-4 w-4 ${stat.color}`} />
             </CardHeader>
             <CardContent>
@@ -119,7 +173,9 @@ export function UsersPage() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>User List</CardTitle>
-              <CardDescription>{filteredUsers.length} users found</CardDescription>
+              <CardDescription>
+                {filteredUsers.length} users found
+              </CardDescription>
             </div>
             <div className="relative w-64">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -151,22 +207,35 @@ export function UsersPage() {
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <Avatar className="h-10 w-10">
-                        <AvatarImage src={user.image || "/placeholder.svg"} alt={user.name} />
+                        <AvatarImage
+                          src={user.image || "/placeholder.svg"}
+                          alt={user.name}
+                        />
                         <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary">
                           {user.name.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
                       <div>
                         <div className="font-medium">{user.name}</div>
-                        <div className="text-sm text-muted-foreground">{user.email}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {user.email}
+                        </div>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={user.status === "active" ? "default" : "secondary"}>{user.status}</Badge>
+                    <Badge
+                      variant={
+                        user.status === "active" ? "default" : "secondary"
+                      }
+                    >
+                      {user.status}
+                    </Badge>
                   </TableCell>
                   <TableCell>{user.totalOrders || 0}</TableCell>
-                  <TableCell>${user.totalSpent?.toFixed(2) || "0.00"}</TableCell>
+                  <TableCell>
+                    ${user.totalSpent?.toFixed(2) || "0.00"}
+                  </TableCell>
                   <TableCell className="text-muted-foreground">
                     {new Date(user.joinedAt).toLocaleDateString()}
                   </TableCell>
@@ -191,7 +260,11 @@ export function UsersPage() {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleToggleStatus(user.id)}
-                          className={user.status === "active" ? "text-destructive" : "text-green-600"}
+                          className={
+                            user.status === "active"
+                              ? "text-destructive"
+                              : "text-green-600"
+                          }
                         >
                           <Ban className="mr-2 h-4 w-4" />
                           {user.status === "active" ? "Deactivate" : "Activate"}
@@ -206,5 +279,5 @@ export function UsersPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import type React from "react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -13,22 +13,38 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { X, Plus, Package } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { X, Plus, Package } from "lucide-react";
+import { toast } from "sonner";
 
 interface ProductDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSave: () => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: () => void;
 }
 
-const categories = ["Electronics", "Fashion", "Home & Garden", "Sports", "Books", "Toys"]
+const categories = [
+  "Electronics",
+  "Fashion",
+  "Home & Garden",
+  "Sports",
+  "Books",
+  "Toys",
+];
 
-export function ProductDialog({ open, onOpenChange, onSave }: ProductDialogProps) {
-  const { toast } = useToast()
+export function ProductDialog({
+  open,
+  onOpenChange,
+  onSave,
+}: ProductDialogProps) {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -38,25 +54,22 @@ export function ProductDialog({ open, onOpenChange, onSave }: ProductDialogProps
     stock: "",
     image: "",
     benefits: [] as string[],
-  })
-  const [newBenefit, setNewBenefit] = useState("")
+  });
+  const [newBenefit, setNewBenefit] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!formData.name || !formData.price || !formData.category) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Please fill in all required fields",
-        variant: "destructive",
-      })
-      return
-    }
+      });
 
-    toast({
-      title: "Success",
+      return;
+    }
+    toast.success("Success", {
       description: "Product created successfully!",
-    })
+    });
 
     // Reset form
     setFormData({
@@ -68,27 +81,27 @@ export function ProductDialog({ open, onOpenChange, onSave }: ProductDialogProps
       stock: "",
       image: "",
       benefits: [],
-    })
+    });
 
-    onSave()
-  }
+    onSave();
+  };
 
   const addBenefit = () => {
     if (newBenefit.trim() && formData.benefits.length < 4) {
       setFormData({
         ...formData,
         benefits: [...formData.benefits, newBenefit.trim()],
-      })
-      setNewBenefit("")
+      });
+      setNewBenefit("");
     }
-  }
+  };
 
   const removeBenefit = (index: number) => {
     setFormData({
       ...formData,
       benefits: formData.benefits.filter((_, i) => i !== index),
-    })
-  }
+    });
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -99,8 +112,12 @@ export function ProductDialog({ open, onOpenChange, onSave }: ProductDialogProps
               <Package className="h-5 w-5 text-emerald-600" />
             </div>
             <div>
-              <DialogTitle className="text-xl font-semibold">Add New Product</DialogTitle>
-              <DialogDescription>Create a new product listing for your store</DialogDescription>
+              <DialogTitle className="text-xl font-semibold">
+                Add New Product
+              </DialogTitle>
+              <DialogDescription>
+                Create a new product listing for your store
+              </DialogDescription>
             </div>
           </div>
         </DialogHeader>
@@ -112,7 +129,9 @@ export function ProductDialog({ open, onOpenChange, onSave }: ProductDialogProps
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 placeholder="Enter product name"
                 required
               />
@@ -121,7 +140,9 @@ export function ProductDialog({ open, onOpenChange, onSave }: ProductDialogProps
               <Label htmlFor="category">Category *</Label>
               <Select
                 value={formData.category}
-                onValueChange={(value) => setFormData({ ...formData, category: value })}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, category: value })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select category" />
@@ -142,7 +163,9 @@ export function ProductDialog({ open, onOpenChange, onSave }: ProductDialogProps
             <Textarea
               id="description"
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
               placeholder="Enter product description"
               rows={3}
             />
@@ -156,7 +179,9 @@ export function ProductDialog({ open, onOpenChange, onSave }: ProductDialogProps
                 type="number"
                 step="0.01"
                 value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, price: e.target.value })
+                }
                 placeholder="0.00"
                 required
               />
@@ -168,7 +193,9 @@ export function ProductDialog({ open, onOpenChange, onSave }: ProductDialogProps
                 type="number"
                 step="0.01"
                 value={formData.oldPrice}
-                onChange={(e) => setFormData({ ...formData, oldPrice: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, oldPrice: e.target.value })
+                }
                 placeholder="0.00"
               />
             </div>
@@ -178,7 +205,9 @@ export function ProductDialog({ open, onOpenChange, onSave }: ProductDialogProps
                 id="stock"
                 type="number"
                 value={formData.stock}
-                onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, stock: e.target.value })
+                }
                 placeholder="0"
               />
             </div>
@@ -189,7 +218,9 @@ export function ProductDialog({ open, onOpenChange, onSave }: ProductDialogProps
             <Input
               id="image"
               value={formData.image}
-              onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, image: e.target.value })
+              }
               placeholder="https://example.com/image.jpg"
             />
           </div>
@@ -201,7 +232,9 @@ export function ProductDialog({ open, onOpenChange, onSave }: ProductDialogProps
                 value={newBenefit}
                 onChange={(e) => setNewBenefit(e.target.value)}
                 placeholder="Add a product benefit"
-                onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addBenefit())}
+                onKeyPress={(e) =>
+                  e.key === "Enter" && (e.preventDefault(), addBenefit())
+                }
               />
               <Button
                 type="button"
@@ -221,7 +254,11 @@ export function ProductDialog({ open, onOpenChange, onSave }: ProductDialogProps
                   className="flex items-center gap-1 bg-gradient-to-r from-violet-100 to-blue-100 dark:from-violet-900/20 dark:to-blue-900/20"
                 >
                   {benefit}
-                  <button type="button" onClick={() => removeBenefit(index)} className="ml-1 hover:text-destructive">
+                  <button
+                    type="button"
+                    onClick={() => removeBenefit(index)}
+                    className="ml-1 hover:text-destructive"
+                  >
                     <X className="h-3 w-3" />
                   </button>
                 </Badge>
@@ -230,7 +267,11 @@ export function ProductDialog({ open, onOpenChange, onSave }: ProductDialogProps
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
             <Button
@@ -243,5 +284,5 @@ export function ProductDialog({ open, onOpenChange, onSave }: ProductDialogProps
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

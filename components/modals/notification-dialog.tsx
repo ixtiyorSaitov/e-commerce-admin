@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import type React from "react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -13,42 +13,47 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Send, Users, Bell } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Send, Users, Bell } from "lucide-react";
+import { toast } from "sonner";
 
 interface NotificationDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSave: () => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: () => void;
 }
 
-export function NotificationDialog({ open, onOpenChange, onSave }: NotificationDialogProps) {
-  const { toast } = useToast()
+export function NotificationDialog({
+  open,
+  onOpenChange,
+  onSave,
+}: NotificationDialogProps) {
   const [formData, setFormData] = useState({
     title: "",
     message: "",
     type: "info" as "info" | "warning" | "success" | "error",
     recipients: "all" as "all" | "active" | "inactive",
-  })
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!formData.title || !formData.message) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Please fill in all required fields",
-        variant: "destructive",
-      })
-      return
+      });
+      return;
     }
-
-    toast({
-      title: "Success",
+    toast.success("Success", {
       description: "Notification sent successfully to all users!",
-    })
+    });
 
     // Reset form
     setFormData({
@@ -56,23 +61,23 @@ export function NotificationDialog({ open, onOpenChange, onSave }: NotificationD
       message: "",
       type: "info",
       recipients: "all",
-    })
+    });
 
-    onSave()
-  }
+    onSave();
+  };
 
   const getRecipientCount = (recipients: string) => {
     switch (recipients) {
       case "all":
-        return "All Users (1,234)"
+        return "All Users (1,234)";
       case "active":
-        return "Active Users (1,089)"
+        return "Active Users (1,089)";
       case "inactive":
-        return "Inactive Users (145)"
+        return "Inactive Users (145)";
       default:
-        return "Unknown"
+        return "Unknown";
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -83,8 +88,12 @@ export function NotificationDialog({ open, onOpenChange, onSave }: NotificationD
               <Bell className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <DialogTitle className="text-xl font-semibold">Send Notification</DialogTitle>
-              <DialogDescription>Broadcast a message to your users</DialogDescription>
+              <DialogTitle className="text-xl font-semibold">
+                Send Notification
+              </DialogTitle>
+              <DialogDescription>
+                Broadcast a message to your users
+              </DialogDescription>
             </div>
           </div>
         </DialogHeader>
@@ -95,7 +104,9 @@ export function NotificationDialog({ open, onOpenChange, onSave }: NotificationD
             <Input
               id="title"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
               placeholder="Enter notification title"
               required
             />
@@ -106,7 +117,9 @@ export function NotificationDialog({ open, onOpenChange, onSave }: NotificationD
             <Textarea
               id="message"
               value={formData.message}
-              onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, message: e.target.value })
+              }
               placeholder="Enter your message"
               rows={4}
               required
@@ -118,9 +131,9 @@ export function NotificationDialog({ open, onOpenChange, onSave }: NotificationD
               <Label>Type</Label>
               <Select
                 value={formData.type}
-                onValueChange={(value: "info" | "warning" | "success" | "error") =>
-                  setFormData({ ...formData, type: value })
-                }
+                onValueChange={(
+                  value: "info" | "warning" | "success" | "error"
+                ) => setFormData({ ...formData, type: value })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -164,7 +177,11 @@ export function NotificationDialog({ open, onOpenChange, onSave }: NotificationD
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
             <Button
@@ -178,5 +195,5 @@ export function NotificationDialog({ open, onOpenChange, onSave }: NotificationD
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

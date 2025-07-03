@@ -1,26 +1,45 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Bell, Send, Users, Clock, CheckCircle } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Bell, Send, Users, Clock, CheckCircle } from "lucide-react";
+import { toast } from "sonner";
 
 interface Notification {
-  id: string
-  title: string
-  message: string
-  type: "info" | "warning" | "success" | "error"
-  recipients: "all" | "active" | "inactive"
-  status: "draft" | "sent"
-  createdAt: string
-  sentAt?: string
+  id: string;
+  title: string;
+  message: string;
+  type: "info" | "warning" | "success" | "error";
+  recipients: "all" | "active" | "inactive";
+  status: "draft" | "sent";
+  createdAt: string;
+  sentAt?: string;
 }
 
 const mockNotifications: Notification[] = [
@@ -53,26 +72,24 @@ const mockNotifications: Notification[] = [
     status: "draft",
     createdAt: "2024-01-18",
   },
-]
+];
 
 export function NotificationsPage() {
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications)
+  const [notifications, setNotifications] =
+    useState<Notification[]>(mockNotifications);
   const [formData, setFormData] = useState({
     title: "",
     message: "",
     type: "info" as "info" | "warning" | "success" | "error",
     recipients: "all" as "all" | "active" | "inactive",
-  })
-  const { toast } = useToast()
+  });
 
   const handleSendNotification = () => {
     if (!formData.title || !formData.message) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Please fill in all required fields",
-        variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     const newNotification: Notification = {
@@ -84,30 +101,27 @@ export function NotificationsPage() {
       status: "sent",
       createdAt: new Date().toISOString().split("T")[0],
       sentAt: new Date().toISOString().split("T")[0],
-    }
+    };
 
-    setNotifications([newNotification, ...notifications])
+    setNotifications([newNotification, ...notifications]);
     setFormData({
       title: "",
       message: "",
       type: "info",
       recipients: "all",
-    })
+    });
 
-    toast({
-      title: "Success",
+    toast.error("Success", {
       description: "Notification sent successfully to all users",
-    })
-  }
+    });
+  };
 
   const handleSaveDraft = () => {
     if (!formData.title || !formData.message) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Please fill in all required fields",
-        variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     const newNotification: Notification = {
@@ -118,55 +132,56 @@ export function NotificationsPage() {
       recipients: formData.recipients,
       status: "draft",
       createdAt: new Date().toISOString().split("T")[0],
-    }
+    };
 
-    setNotifications([newNotification, ...notifications])
+    setNotifications([newNotification, ...notifications]);
     setFormData({
       title: "",
       message: "",
       type: "info",
       recipients: "all",
-    })
+    });
 
-    toast({
-      title: "Success",
+    toast.success("Success", {
       description: "Notification saved as draft",
-    })
-  }
+    });
+  };
 
   const getTypeColor = (type: string) => {
     switch (type) {
       case "info":
-        return "text-blue-600"
+        return "text-blue-600";
       case "warning":
-        return "text-orange-600"
+        return "text-orange-600";
       case "success":
-        return "text-green-600"
+        return "text-green-600";
       case "error":
-        return "text-red-600"
+        return "text-red-600";
       default:
-        return "text-gray-600"
+        return "text-gray-600";
     }
-  }
+  };
 
   const getRecipientCount = (recipients: string) => {
     switch (recipients) {
       case "all":
-        return "All Users (1,234)"
+        return "All Users (1,234)";
       case "active":
-        return "Active Users (1,089)"
+        return "Active Users (1,089)";
       case "inactive":
-        return "Inactive Users (145)"
+        return "Inactive Users (145)";
       default:
-        return "Unknown"
+        return "Unknown";
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Notifications</h1>
-        <p className="text-muted-foreground">Send broadcast messages to your users</p>
+        <p className="text-muted-foreground">
+          Send broadcast messages to your users
+        </p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-4">
@@ -185,24 +200,36 @@ export function NotificationsPage() {
           },
           {
             title: "This Month",
-            value: notifications.filter((n) => new Date(n.createdAt).getMonth() === new Date().getMonth()).length,
+            value: notifications.filter(
+              (n) => new Date(n.createdAt).getMonth() === new Date().getMonth()
+            ).length,
             color: "text-green-600",
             icon: Bell,
           },
-          { title: "Success Rate", value: "98.5%", color: "text-purple-600", icon: CheckCircle },
+          {
+            title: "Success Rate",
+            value: "98.5%",
+            color: "text-purple-600",
+            icon: CheckCircle,
+          },
         ].map((stat, index) => {
-          const Icon = stat.icon
+          const Icon = stat.icon;
           return (
-            <Card key={index} className="border-0 shadow-lg bg-card/50 backdrop-blur-sm">
+            <Card
+              key={index}
+              className="border-0 shadow-lg bg-card/50 backdrop-blur-sm"
+            >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  {stat.title}
+                </CardTitle>
                 <Icon className={`h-4 w-4 ${stat.color}`} />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stat.value}</div>
               </CardContent>
             </Card>
-          )
+          );
         })}
       </div>
 
@@ -218,7 +245,9 @@ export function NotificationsPage() {
               <Input
                 id="title"
                 value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
                 placeholder="Enter notification title"
               />
             </div>
@@ -228,7 +257,9 @@ export function NotificationsPage() {
               <Textarea
                 id="message"
                 value={formData.message}
-                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, message: e.target.value })
+                }
                 placeholder="Enter your message"
                 rows={4}
               />
@@ -239,9 +270,9 @@ export function NotificationsPage() {
                 <Label>Type</Label>
                 <Select
                   value={formData.type}
-                  onValueChange={(value: "info" | "warning" | "success" | "error") =>
-                    setFormData({ ...formData, type: value })
-                  }
+                  onValueChange={(
+                    value: "info" | "warning" | "success" | "error"
+                  ) => setFormData({ ...formData, type: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -285,11 +316,18 @@ export function NotificationsPage() {
             </div>
 
             <div className="flex space-x-2">
-              <Button onClick={handleSendNotification} className="flex-1 bg-gradient-to-r from-primary to-primary/90">
+              <Button
+                onClick={handleSendNotification}
+                className="flex-1 bg-gradient-to-r from-primary to-primary/90"
+              >
                 <Send className="mr-2 h-4 w-4" />
                 Send Now
               </Button>
-              <Button variant="outline" onClick={handleSaveDraft} className="flex-1 bg-transparent">
+              <Button
+                variant="outline"
+                onClick={handleSaveDraft}
+                className="flex-1 bg-transparent"
+              >
                 <Clock className="mr-2 h-4 w-4" />
                 Save Draft
               </Button>
@@ -300,7 +338,9 @@ export function NotificationsPage() {
         <Card className="border-0 shadow-lg bg-card/50 backdrop-blur-sm">
           <CardHeader>
             <CardTitle>Recent Notifications</CardTitle>
-            <CardDescription>{notifications.length} notifications sent</CardDescription>
+            <CardDescription>
+              {notifications.length} notifications sent
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -324,12 +364,21 @@ export function NotificationsPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className={getTypeColor(notification.type)}>
+                      <Badge
+                        variant="secondary"
+                        className={getTypeColor(notification.type)}
+                      >
                         {notification.type}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={notification.status === "sent" ? "default" : "secondary"}>
+                      <Badge
+                        variant={
+                          notification.status === "sent"
+                            ? "default"
+                            : "secondary"
+                        }
+                      >
                         {notification.status}
                       </Badge>
                     </TableCell>
@@ -344,5 +393,5 @@ export function NotificationsPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
