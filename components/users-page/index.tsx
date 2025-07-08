@@ -110,17 +110,12 @@ export function UsersPage({ datas }: UserPageProps) {
     },
     {
       title: "Total Revenue",
-      value: `$${users
-        .reduce((sum, u) => sum + (u.totalSpent || 0), 0)
-        .toFixed(2)}`,
+      value: `$144`,
       color: "text-purple-600",
     },
     {
       title: "Avg Order Value",
-      value: `$${(
-        users.reduce((sum, u) => sum + (u.totalSpent || 0), 0) /
-          users.reduce((sum, u) => sum + (u.orders?.length || 0), 0) || 0
-      ).toFixed(2)}`,
+      value: `$144`,
       color: "text-orange-600",
     },
   ];
