@@ -20,6 +20,15 @@ const UserSchema = new mongoose.Schema(
     status: { type: String, enum: ["active", "inactive"], default: "inactive" },
     totalSpent: [Number],
     orders: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
+    notifications: [
+      {
+        notification: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Notification",
+        },
+        isViewed: Boolean,
+      },
+    ],
   },
   { timestamps: true, strict: true }
 );
