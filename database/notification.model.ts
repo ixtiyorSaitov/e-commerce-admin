@@ -6,7 +6,7 @@ const NotificationSchema = new mongoose.Schema(
     message: { type: String, require: true },
     type: { type: String, enum: ["info", "warning", "success", "error"] },
     recipients: { type: String, enum: ["all", "active", "inactive"] },
-    views: Number,  
+    views: Number,
   },
   { timestamps: true, strict: true }
 );

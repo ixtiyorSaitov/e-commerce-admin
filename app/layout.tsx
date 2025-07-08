@@ -30,9 +30,8 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <NextTopLoader showSpinner={false} />
+          <NextTopLoader zIndex={1000} showSpinner={false} />
           {children}
-          {/* <AuthProvider></AuthProvider> */}
           <Toaster />
         </ThemeProvider>
       </body>
